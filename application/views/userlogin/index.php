@@ -102,7 +102,7 @@
 					<!--</div>-->
 				</form>
 
-				<div class="login100-more" style="background-image: url('<?php echo base_url(); ?>assets/images/smic-login-background2.png');">
+				<div class="login100-more" style="background-image: url('<?php echo base_url(); ?>assets/images/smic-login-background.jpg');">
 				</div>
 			</div>
 		</div>
