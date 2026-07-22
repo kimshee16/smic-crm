@@ -299,7 +299,7 @@ class Visacontroller extends CI_Controller {
 					'visa_intake' => $this->input->post('visa_intake')
 				);
 		$this->db->insert('visa_application', $data);
-		redirect('editclientinfo2/'.$this->input->post('clientid')."#finalization");
+		redirect('editclientinfo2/'.$this->input->post('clientid')."/file-manager");
 	}
 
 	public function savevisaeoi()
@@ -344,7 +344,7 @@ class Visacontroller extends CI_Controller {
 					'flag' => $this->input->post('flag')
 				);
 		$this->db->insert('expression_of_interest', $data);
-		redirect('editclientinfo2/'.$this->input->post('clientid')."#finalization");
+		redirect('editclientinfo2/'.$this->input->post('clientid')."/file-manager");
 	}
 
 	public function savevisaaccount()
@@ -372,7 +372,7 @@ class Visacontroller extends CI_Controller {
 					'disbursed_gst' => $this->input->post('dispursedgst')
 				);
 		$this->db->insert('visa_accounts', $data);
-		redirect('editclientinfo2/'.$this->input->post('clientid')."#finalization");
+		redirect('editclientinfo2/'.$this->input->post('clientid')."/file-manager");
 	}
 
 	public function editvisaapplication($id) {
@@ -624,7 +624,7 @@ class Visacontroller extends CI_Controller {
 		$this->db->where('client_visa_id', $this->input->post('clientvisaid'));
 		$this->db->update('visa_application');
 
-		redirect('editclientinfo2/'.$this->input->post('clientid')."#finalization");
+		redirect('editclientinfo2/'.$this->input->post('clientid')."/file-manager");
 	}
 
 	public function updatevisaeoi()
@@ -643,7 +643,7 @@ class Visacontroller extends CI_Controller {
 		$this->db->where('eoi_id', $this->input->post('eoiid'));
 		$this->db->update('expression_of_interest');
 
-		redirect('editclientinfo2/'.$this->input->post('clientid')."#finalization");
+		redirect('editclientinfo2/'.$this->input->post('clientid')."/file-manager");
 	}
 
 	public function updatevisaaccount()
@@ -659,7 +659,7 @@ class Visacontroller extends CI_Controller {
 		$this->db->where('visa_account_id', $this->input->post('visaaccountid'));
 		$this->db->update('visa_accounts');
 
-		redirect('editclientinfo2/'.$this->input->post('clientid')."#result");
+		redirect('editclientinfo2/'.$this->input->post('clientid')."/result");
 	}
 
 	public function deletevisaapplication($vapid, $client_id)

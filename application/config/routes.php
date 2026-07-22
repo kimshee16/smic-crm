@@ -20,8 +20,12 @@ $route['privacypolicy'] = 'userlogincontroller/privacypolicy';
 
 // Client Information
 $route['editclientinfo/(:any)'] = 'customerinfocontroller/editclientinfo/$1';
+$route['editclientinfo2/(:any)/(:any)'] = 'customerinfocontroller/editclientinfo2/$1/$2';
 $route['editclientinfo2/(:any)'] = 'customerinfocontroller/editclientinfo2/$1';
 $route['savefirebasefile'] = 'customerinfocontroller/savefirebasefile';
+$route['create_student_gdrive_folder'] = 'customerinfocontroller/create_student_gdrive_folder';
+$route['upload_student_gdrive_file'] = 'customerinfocontroller/upload_student_gdrive_file';
+$route['send_po_link_email'] = 'customerinfocontroller/send_po_link_email';
 $route['assignofficer'] = 'customerinfocontroller/assignofficer';
 $route['enterclientinfo/(:any)'] = 'customerinfocontroller/enterclientinfo/$1';
 $route['resetphoto/(:any)'] = 'customerinfocontroller/resetphoto/$1';
@@ -30,9 +34,11 @@ $route['saveresult'] = 'customerinfocontroller/saveresult';
 $route['updateresult'] = 'customerinfocontroller/updateresult';
 $route['editfile'] = 'customerinfocontroller/editfile';
 $route['editfirebasefile'] = 'customerinfocontroller/editfirebasefile';
+$route['editgsdfile'] = 'customerinfocontroller/editfirebasefile';
 $route['clientmonitoring'] = 'customerinfocontroller/clientmonitoring';
 $route['deletefile'] = 'customerinfocontroller/deletefile';
 $route['deletefirebasefile'] = 'customerinfocontroller/deletefirebasefile';
+$route['deletegsdfile'] = 'customerinfocontroller/deletefirebasefile';
 
 // Interview
 $route['saveinterview'] = 'Interviewcontroller/do_upload';
@@ -86,11 +92,15 @@ $route['saveclientform'] = 'formscontroller/saveclientform';
 $route['do_upload'] = 'formscontroller/do_upload';
 $route['success'] = 'formscontroller/success';
 $route['programoptionform/(:any)'] = 'formscontroller/programoptionform/$1';
+$route['po_link_preview/(:any)/(:any)'] = 'formscontroller/po_link_preview/$1/$2';
+$route['accept_po_link'] = 'formscontroller/accept_po_link';
+$route['reject_po_link'] = 'formscontroller/reject_po_link';
 $route['sendemail'] = 'formscontroller/sendemail';
 $route['checkexistingemail/(:any)'] = 'formscontroller/checkexistingemail/$1';
 
 // Admin maintenance routes
 $route['adminmaintenance'] = 'adminmaintenancecontroller/index';
+$route['adminmaintenance/(:any)'] = 'adminmaintenancecontroller/index/$1';
 $route['newregion'] = 'adminmaintenancecontroller/newregion';
 $route['saveregion'] = 'adminmaintenancecontroller/saveregion';
 $route['newofficer'] = 'adminmaintenancecontroller/newofficer';
@@ -102,6 +112,7 @@ $route['saveparameters'] = 'adminmaintenancecontroller/saveparameters';
 $route['updatepriviledge'] = 'adminmaintenancecontroller/updatepriviledge';
 $route['newevent'] = 'eventscontroller/newevent';
 $route['editofficer/(:any)'] = 'adminmaintenancecontroller/editofficer/$1';
+$route['updateofficerphoto'] = 'adminmaintenancecontroller/updateofficerphoto';
 $route['editregion/(:any)'] = 'adminmaintenancecontroller/editregion/$1';
 $route['updateregion'] = 'adminmaintenancecontroller/updateregion';
 $route['editassignment/(:any)'] = 'adminmaintenancecontroller/editassignment/$1';
@@ -163,7 +174,7 @@ $route['transferinquirytoclientfromdashboard/(:any)'] = 'inquiriescontroller/tra
 
 // Program Options routes
 $route['newprogramoption/(:any)'] = 'programoptionscontroller/newprogramoption/$1';
-$route['saveprogramoptions'] = 'programoptionscontroller/saveprogramoptions';
+$route['saveprogramoptions'] = 'programoptionscontroller/do_upload';
 $route['editprogramoptions/(:any)'] = 'programoptionscontroller/editprogramoption/$1';
 $route['updateprogramoptions'] = 'programoptionscontroller/updateprogramoptions';
 $route['newprogramoptiondetails/(:any)'] = 'programoptionscontroller/newprogramoptiondetails/$1';
@@ -210,6 +221,7 @@ $route['clientforgotpasswordsend'] = 'clientlogincontroller/clientforgotpassword
 // Dashboard routes
 $route['archivetasklist/(:any)'] = 'dashboardcontroller/archivetasklist/$1';
 $route['donetasklist/(:any)'] = 'dashboardcontroller/donetasklist/$1';
+$route['completetodaystask'] = 'dashboardcontroller/completetodaystask';
 $route['markasread'] = 'dashboardcontroller/markasread';
 
 $route['programoptionform2/(:any)'] = 'formscontroller/programoptionform2/$1';

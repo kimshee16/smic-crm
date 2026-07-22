@@ -1,6 +1,27 @@
 <?php
     $this->load->view('layout/header');
 ?>
+<style>
+  .payments-actions {
+    display: inline-flex;
+    gap: 6px;
+    white-space: nowrap;
+  }
+
+  .payments-icon-btn {
+    align-items: center;
+    display: inline-flex;
+    height: 34px;
+    justify-content: center;
+    min-width: 34px;
+    padding: 7px;
+  }
+
+  .payments-icon-btn i {
+    font-size: 13px;
+    line-height: 1;
+  }
+</style>
 
   <!-- Content Wrapper. Contains page content -->
   <div class="content-wrapper">
@@ -29,7 +50,9 @@
           <div class="card">
             <!-- /.card-header -->
             <div class="card-body" style="overflow-x: scroll;">
-                <a href="<?php echo base_url(); ?>index.php/newpayment" class="btn btn-primary">New Payment Entry</a><br><br>
+                <div class="app-create-toolbar">
+                  <a href="<?php echo base_url(); ?>index.php/newpayment" class="btn btn-primary app-create-btn"><i class="fas fa-plus" aria-hidden="true"></i> New Payment</a>
+                </div>
               <table id="example1" class="table table-bordered table-striped">
                 <thead>
                 <tr>
@@ -42,7 +65,7 @@
                   <th>Payer Name</th>
                   <th>Date</th>
                   <th>Processed by</th>
-                  <th></th>
+                  <th>Actions</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -66,11 +89,11 @@
                     <td>".$row->description."</td>
                     <td>".$row->schedule."</td>
                     <td>".$row->totalprice."</td>
-                    <td><a href='".$attachments."/".$row->id."' target='_blank'>View/print receipt</a></td>
+                    <td><a href='".$attachments."/".$row->id."' target='_blank' class='btn btn-info btn-xs payments-icon-btn' title='View/print receipt' aria-label='View/print receipt'><i class='fas fa-print' aria-hidden='true'></i></a></td>
                     <td>".$row->payorname."</td>
                     <td>".$row->paymentdate."</td>
                     <td>".$row->officer_name."</td>
-                    <td><a href='archivepayment/".$row->id."' class='btn btn-danger btn-xs'>Delete</a> <a href='editpayment/".$row->id."' class='btn btn-primary btn-xs'>Edit</a></td>
+                    <td><span class='payments-actions'><a href='editpayment/".$row->id."' class='btn btn-primary btn-xs payments-icon-btn' title='Edit payment' aria-label='Edit payment'><i class='fas fa-edit' aria-hidden='true'></i></a><a href='archivepayment/".$row->id."' class='btn btn-danger btn-xs payments-icon-btn' title='Delete payment' aria-label='Delete payment'><i class='fas fa-trash' aria-hidden='true'></i></a></span></td>
                   </tr>";
                 }
                 ?>

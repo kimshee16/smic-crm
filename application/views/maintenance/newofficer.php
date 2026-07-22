@@ -30,13 +30,23 @@
             <!-- /.card-header -->
             <div class="card-body">
               <input type="hidden" id="baseurl" value="<?php echo base_url(); ?>">
-              <form action="Adminmaintenancecontroller/do_upload" method="post" enctype="multipart/form-data">
+              <form action="<?php echo base_url(); ?>index.php/adminmaintenancecontroller/do_upload" method="post" enctype="multipart/form-data">
                 <input type="hidden" name="indicator" value="add">
                 <?php 
                     if(isset($error)) {
                 ?>
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
                   <?php echo $error; ?>
+                  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <?php
+                    }
+                    if($this->session->flashdata('error')) {
+                ?>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                  <?php echo $this->session->flashdata('error'); ?>
                   <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                   </button>
@@ -151,6 +161,11 @@
     var roletext = $("#role option:selected").text();
     $("#roletext").val(roletext);
   }
+
+  document.querySelector("form").addEventListener("submit", function () {
+    var roletext = $("#role option:selected").text();
+    $("#roletext").val(roletext);
+  });
 
   function markasread() {
       var baseurl10 = document.getElementById("baseurl").value;

@@ -36,11 +36,22 @@
               <form action="<?php echo base_url(); ?>index.php/adminmaintenancecontroller/do_upload" method="post" enctype="multipart/form-data">
                 <input type="hidden" name="indicator" value="edit">
                 <input type="hidden" name="officerid" value="<?php echo $officerid; ?>">
+                <input type="hidden" name="currentphoto" value="<?php echo $officerrow->officer_photo; ?>">
                 <?php 
                     if(isset($error)) {
                 ?>
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
                   <?php echo $error; ?>
+                  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <?php
+                    }
+                    if($this->session->flashdata('error')) {
+                ?>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                  <?php echo $this->session->flashdata('error'); ?>
                   <button type="button" class="close" data-dismiss="alert" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                   </button>
@@ -91,7 +102,7 @@
                   <label for="payee" class="form-label">Role</label>
                   <input type="hidden" name="roletext" id="roletext">
                   <select class="form-control select2" name="role" id="role" required>
-                    <option value="<?php echo $officerrow->officer_role; ?>"><?php echo $officerrow->officer_role; ?></option>
+                    <option value="<?php echo $officerrow->user_role_id; ?>"><?php echo $officerrow->officer_role; ?></option>
                     <?php
                     foreach ($mastersetting as $row2) {
                       echo "<option value='".$row2->id."'>".$row2->identity."</option>";
@@ -101,6 +112,11 @@
                 </div>
                 <div class="mb-3">
                   <label for="amount" class="form-label">Photo</label>
+                  <?php if($officerrow->officer_photo != "") { ?>
+                    <div class="mb-2">
+                      <img src="<?php echo $asset_url; ?>images/<?php echo $officerrow->officer_photo; ?>" class="img-circle elevation-2" alt="Current officer photo" style="width: 64px; height: 64px; object-fit: cover;">
+                    </div>
+                  <?php } ?>
                   <input type="file" class="form-control" name="userfile" placeholder="Photo">
                 </div>
                 <button type="submit" class="btn btn-primary">Submit</button>
@@ -179,6 +195,8 @@
     document.addEventListener("DOMContentLoaded", function () {
         document.querySelector("form").addEventListener("submit", function (event) {
             event.preventDefault();
+            var roletext = $("#role option:selected").text();
+            $("#roletext").val(roletext);
             fetch("https://hook.eu2.make.com/71bdysz2v9hrwm0j2q7t5ypamxjmjgin?type=changepassword&email="+document.getElementById("email").value+"&name="+document.getElementById("name").value+"&password="+document.getElementById("password").value, {
                 method: "POST"
             })
@@ -188,7 +206,7 @@
             })
             .catch(error => {
                 console.error("Error sending data to webhook:", error);
-                alert("An error occurred. Please try again.");
+                event.target.submit();
             });
         });
     });

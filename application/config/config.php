@@ -2,6 +2,23 @@
 defined('BASEPATH') OR exit('No direct script access allowed');
 
 date_default_timezone_set('Australia/Sydney');
+
+/*
+|--------------------------------------------------------------------------
+| Google Shared Drive Integration
+|--------------------------------------------------------------------------
+|
+| Service account credentials and target Google Drive folder used by the app.
+| Workspace impersonation is optional and should stay blank unless Google Admin
+| enables domain-wide delegation for the service account.
+|
+*/
+$config['google_service_account_json_path'] = APPPATH.'config/google/smic-crm-50284a93c36b.json';
+$config['google_shared_drive_id'] = '0AGlHj0wVsaLMUk9PVA';
+$config['google_drive_parent_folder_id'] = $config['google_shared_drive_id'];
+$config['google_drive_folder_id'] = $config['google_drive_parent_folder_id'];
+$config['google_workspace_impersonate_email'] = '';
+
 /*
 |--------------------------------------------------------------------------
 | Base Site URL
@@ -24,9 +41,9 @@ date_default_timezone_set('Australia/Sydney');
 | a PHP script and you can easily do that on your own.
 |
 */
-// $config['base_url'] = 'http://localhost/smic-crm/crm/';
+$config['base_url'] = 'http://localhost/smic-crm/';
 // $config['base_url'] = 'https://crm.smic.education/';
-$config['base_url'] = 'http://localhost/smic-crm/ci-3-1-13/';
+// $config['base_url'] = 'http://localhost/smic-crm/ci-3-1-13/';
 
 /*
 |--------------------------------------------------------------------------

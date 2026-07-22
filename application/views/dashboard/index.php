@@ -24,6 +24,96 @@
     <section class="content">
       <input type="hidden" id="baseurl" value="<?php echo base_url(); ?>">
       <div class="container-fluid">
+        <style>
+          .today-task-toolbar {
+            align-items: center;
+            display: flex;
+            gap: 10px;
+            justify-content: space-between;
+            margin-bottom: 12px;
+          }
+
+          .priority-task-list {
+            border: 1px solid #d8e4f0;
+            border-radius: 8px;
+            overflow: hidden;
+          }
+
+          .priority-task-row {
+            align-items: center;
+            border-bottom: 1px solid #e5eef7;
+            display: grid;
+            gap: 12px;
+            grid-template-columns: 28px 94px minmax(220px, 1fr) 150px 112px;
+            padding: 12px 14px;
+          }
+
+          .priority-task-row:nth-child(even) {
+            background: #f7fbff;
+          }
+
+          .priority-task-row:last-child {
+            border-bottom: 0;
+          }
+
+          .priority-task-client {
+            color: #0d2238;
+            font-weight: 700;
+            line-height: 1.25;
+          }
+
+          .priority-task-detail {
+            color: #30475e;
+            font-size: 13px;
+            line-height: 1.35;
+            margin-top: 3px;
+          }
+
+          .priority-task-module {
+            color: #7b8ca3;
+            display: block;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: .02em;
+            margin-top: 4px;
+            text-transform: uppercase;
+          }
+
+          .priority-due {
+            color: #41576f;
+            font-size: 12px;
+            font-weight: 700;
+          }
+
+          .priority-actions {
+            display: flex;
+            gap: 6px;
+            justify-content: flex-end;
+          }
+
+          .priority-empty {
+            border: 1px solid #d8e4f0;
+            border-radius: 8px;
+            color: #6c7d90;
+            padding: 28px;
+            text-align: center;
+          }
+
+          @media (max-width: 991px) {
+            .priority-task-row {
+              grid-template-columns: 28px 86px minmax(0, 1fr);
+            }
+
+            .priority-due,
+            .priority-actions {
+              grid-column: 3;
+            }
+
+            .priority-actions {
+              justify-content: flex-start;
+            }
+          }
+        </style>
         <?php
           $vedcounter = 0;
           foreach ($prapplicationforchecking as $row1) {
@@ -89,35 +179,173 @@
           </div>
         </div>
 
+        <?php
+          $criticalStudentVisaExpiry = isset($critical_student_visa_expiry) ? $critical_student_visa_expiry : array();
+          $studentVisaExpirySummary = isset($student_visa_expiry_summary) ? $student_visa_expiry_summary : null;
+          $visaExpiryChartLabels = array();
+          $visaExpiryChartData = array();
+          $visaExpiryChartColors = array();
+
+          foreach ($criticalStudentVisaExpiry as $row1) {
+            $clientName = preg_replace("/\s+/", " ", trim($row1->client_firstname." ".$row1->client_middlename." ".$row1->client_surname));
+            if ($clientName == "") {
+              $clientName = "Client #".$row1->client_id;
+            }
+
+            $daysLeft = (int) $row1->days_until_expiry;
+            $visaExpiryChartLabels[] = $clientName." (#".$row1->studentapp_id.")";
+            $visaExpiryChartData[] = $daysLeft;
+
+            if ($daysLeft <= 14) {
+              $visaExpiryChartColors[] = "#dc3545";
+            } elseif ($daysLeft <= 30) {
+              $visaExpiryChartColors[] = "#fd7e14";
+            } elseif ($daysLeft <= 60) {
+              $visaExpiryChartColors[] = "#ffc107";
+            } else {
+              $visaExpiryChartColors[] = "#17a2b8";
+            }
+          }
+
+          $expiredVisaCount = $studentVisaExpirySummary ? (int) $studentVisaExpirySummary->expired_count : 0;
+          $nextThirtyVisaCount = $studentVisaExpirySummary ? (int) $studentVisaExpirySummary->next_30_count : 0;
+          $nextNinetyVisaCount = $studentVisaExpirySummary ? (int) $studentVisaExpirySummary->next_90_count : 0;
+        ?>
+        <div class="row">
+          <div class="col-lg-8 col-12">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Critical Student Visa Expiry</h3>
+                <div class="card-tools">
+                  <span class="badge badge-danger"><?php echo $nextThirtyVisaCount; ?> in 30 days</span>
+                  <span class="badge badge-warning"><?php echo $nextNinetyVisaCount; ?> in 31-90 days</span>
+                  <span class="badge badge-secondary"><?php echo $expiredVisaCount; ?> expired</span>
+                </div>
+              </div>
+              <div class="card-body">
+                <?php if (count($criticalStudentVisaExpiry) > 0) { ?>
+                  <div class="chart" style="position: relative; height: 300px;">
+                    <canvas id="critical-student-visa-expiry-chart"></canvas>
+                  </div>
+                <?php } else { ?>
+                  <div class="text-muted text-center py-4">No valid student visa expiry dates in the next 90 days.</div>
+                <?php } ?>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-4 col-12">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Most Critical</h3>
+              </div>
+              <div class="card-body p-0">
+                <?php if (count($criticalStudentVisaExpiry) > 0) { ?>
+                  <table class="table table-sm mb-0">
+                    <thead>
+                      <tr>
+                        <th>Client</th>
+                        <th>Expiry</th>
+                        <th>Days</th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <?php
+                        $criticalCount = 0;
+                        foreach ($criticalStudentVisaExpiry as $row1) {
+                          if ($criticalCount >= 5) {
+                            break;
+                          }
+
+                          $clientName = preg_replace("/\s+/", " ", trim($row1->client_firstname." ".$row1->client_middlename." ".$row1->client_surname));
+                          if ($clientName == "") {
+                            $clientName = "Client #".$row1->client_id;
+                          }
+
+                          $daysLeft = (int) $row1->days_until_expiry;
+                          $expiryDate = strtotime($row1->vevo_expiry_date) ? date("d/m/Y", strtotime($row1->vevo_expiry_date)) : "";
+                          $badgeClass = $daysLeft <= 14 ? "badge-danger" : ($daysLeft <= 30 ? "badge-warning" : "badge-info");
+                      ?>
+                        <tr>
+                          <td>
+                            <?php echo htmlspecialchars($clientName, ENT_QUOTES, "UTF-8"); ?><br>
+                            <small class="text-muted"><?php echo htmlspecialchars((string) $row1->studentapp_flag, ENT_QUOTES, "UTF-8"); ?></small>
+                          </td>
+                          <td><?php echo $expiryDate; ?></td>
+                          <td><span class="badge <?php echo $badgeClass; ?>"><?php echo $daysLeft; ?></span></td>
+                          <td><a href="<?php echo base_url()."index.php/editapplication/".$row1->studentapp_id; ?>" class="btn btn-primary btn-xs">Details</a></td>
+                        </tr>
+                      <?php
+                          $criticalCount++;
+                        }
+                      ?>
+                    </tbody>
+                  </table>
+                <?php } else { ?>
+                  <div class="text-muted text-center py-4">No critical student visa expiry records.</div>
+                <?php } ?>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="row">
         <div class="col-8">
           <div class="card">
             <div class="card-header">
-              <h3 class="card-title">Today's Tasks</h3>
+              <h3 class="card-title">Today's Priority Tasks</h3>
             </div>
             <div class="card-body">
-              <button class='btn btn-primary btn-xs' onclick='donetasklist();'>Tag selected as Done</button> <button class='btn btn-danger btn-xs' onclick='archivetasklist();'>Archive selected</button><br>
-              <table style='width: 100%;'>
-              <?php
-                $i = 0;
-                foreach ($tasklist as $row) {
+              <div class="today-task-toolbar">
+                <div class="text-muted">
+                  <?php echo count($tasklist); ?> active item<?php echo count($tasklist) == 1 ? '' : 's'; ?>, sorted by urgency
+                </div>
+                <button class="btn btn-primary btn-sm" onclick="donetasklist();"><i class="fas fa-check" aria-hidden="true"></i> Tag selected as Done</button>
+              </div>
 
-              ?>
-                <tr>
-                  <td style='width: 80%;'> <input type="checkbox" id="tasklistdata_<?php echo $i; ?>" class="tasklistdata" value="<?php echo $row->tlid;?>"> &nbsp; &nbsp;  <a href="enterclientinfo/<?php echo $row->client_id; ?>" class="btn btn-primary btn-xs"><i class="fas fa-eye" aria-hidden="true"></i></a> &nbsp;<?php echo $row->details; ?> <small><b>started <?php echo $row->datetime_created; ?></b></small></td>
+              <?php if (count($tasklist) > 0) { ?>
+                <div class="priority-task-list">
                   <?php
-                    if($row->status == 'Created') {
-                      echo "<td style='width: 20%;'><span class='badge badge-success'>".$row->status."</span></td>";
-                    } else {
-                      echo "<td style='width: 20%;'><span class='badge badge-primary'>".$row->status."</span></td>";
+                    $i = 0;
+                    foreach ($tasklist as $task) {
+                      $priorityBadge = 'badge-info';
+                      if ($task['priority_label'] == 'Critical') {
+                        $priorityBadge = 'badge-danger';
+                      } elseif ($task['priority_label'] == 'High') {
+                        $priorityBadge = 'badge-warning';
+                      }
+                  ?>
+                    <div class="priority-task-row">
+                      <div>
+                        <input
+                          type="checkbox"
+                          id="tasklistdata_<?php echo $i; ?>"
+                          class="tasklistdata"
+                          data-client-id="<?php echo (int) $task['client_id']; ?>"
+                          data-module="<?php echo htmlspecialchars($task['module'], ENT_QUOTES, 'UTF-8'); ?>"
+                          data-associated-id="<?php echo (int) $task['associated_id']; ?>"
+                          data-details="<?php echo htmlspecialchars($task['details'], ENT_QUOTES, 'UTF-8'); ?>">
+                      </div>
+                      <div><span class="badge <?php echo $priorityBadge; ?>"><?php echo htmlspecialchars($task['priority_label'], ENT_QUOTES, 'UTF-8'); ?></span></div>
+                      <div>
+                        <div class="priority-task-client"><?php echo htmlspecialchars($task['client_name'], ENT_QUOTES, 'UTF-8'); ?></div>
+                        <div class="priority-task-detail"><?php echo htmlspecialchars($task['details'], ENT_QUOTES, 'UTF-8'); ?></div>
+                        <span class="priority-task-module"><?php echo htmlspecialchars(str_replace('Dashboard ', '', $task['module']), ENT_QUOTES, 'UTF-8'); ?></span>
+                      </div>
+                      <div class="priority-due"><?php echo htmlspecialchars($task['due_text'], ENT_QUOTES, 'UTF-8'); ?></div>
+                      <div class="priority-actions">
+                        <a href="<?php echo htmlspecialchars($task['url'], ENT_QUOTES, 'UTF-8'); ?>" class="btn btn-primary btn-xs" title="Open client work"><i class="fas fa-eye" aria-hidden="true"></i></a>
+                        <button type="button" class="btn btn-success btn-xs" title="Tag done" onclick="completePriorityTask(this);"><i class="fas fa-check" aria-hidden="true"></i></button>
+                      </div>
+                    </div>
+                  <?php
+                      $i++;
                     }
                   ?>
-                <tr>
-              <?php
-                $i++;
-                }
-              ?>
-              </table>
+                </div>
+              <?php } else { ?>
+                <div class="priority-empty">No priority tasks need attention right now.</div>
+              <?php } ?>
             </div>
           </div>
         </div>
@@ -792,50 +1020,122 @@
 <script src="<?php echo $asset_url; ?>dist/js/demo.js"></script>
 
 <script type="text/javascript">
-  function archivetasklist() {
-      var baseurl = document.getElementById("baseurl").value;
-      var tasklistdata = document.getElementsByClassName("tasklistdata");
-      var tasklistdataid = "";
-      for(var h = 0; h < tasklistdata.length; h++) {
-          //alert(document.getElementById("tasklistdata_"+h).value);
-          if(document.getElementById("tasklistdata_"+h).checked == true) {
-            tasklistdataid = document.getElementById("tasklistdata_"+h).value;
-            $.ajax({
-                type: "GET",
-                url: baseurl + "index.php/archivetasklist/" + tasklistdataid,
-                success: function(data) {
-                  alert("Successfully archived Task ID # " + tasklistdataid);
-                  location.reload();
-                },
-                error: function(error) {
-                  alert(error);
-                }
-            });
-          }
+  document.addEventListener("DOMContentLoaded", function () {
+      var chartCanvas = document.getElementById("critical-student-visa-expiry-chart");
+      if (!chartCanvas) {
+        return;
       }
+
+      var visaExpiryLabels = <?php echo json_encode($visaExpiryChartLabels); ?>;
+      var visaExpiryDays = <?php echo json_encode($visaExpiryChartData, JSON_NUMERIC_CHECK); ?>;
+      var visaExpiryColors = <?php echo json_encode($visaExpiryChartColors); ?>;
+
+      new Chart(chartCanvas.getContext("2d"), {
+          type: "horizontalBar",
+          data: {
+              labels: visaExpiryLabels,
+              datasets: [{
+                  label: "Days until expiry",
+                  data: visaExpiryDays,
+                  backgroundColor: visaExpiryColors,
+                  borderColor: visaExpiryColors,
+                  borderWidth: 1
+              }]
+          },
+          options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              legend: {
+                  display: false
+              },
+              scales: {
+                  xAxes: [{
+                      ticks: {
+                          beginAtZero: true,
+                          suggestedMax: 90,
+                          precision: 0
+                      },
+                      scaleLabel: {
+                          display: true,
+                          labelString: "Days until visa expiry"
+                      }
+                  }],
+                  yAxes: [{
+                      ticks: {
+                          fontSize: 11,
+                          callback: function(value) {
+                              return value.length > 32 ? value.substring(0, 32) + "..." : value;
+                          }
+                      }
+                  }]
+              },
+              tooltips: {
+                  callbacks: {
+                      label: function(tooltipItem) {
+                          var days = tooltipItem.xLabel;
+                          return days + (days == 1 ? " day remaining" : " days remaining");
+                      },
+                      title: function(tooltipItems, data) {
+                          return data.labels[tooltipItems[0].index];
+                      }
+                  }
+              }
+          }
+      });
+  });
+</script>
+
+<script type="text/javascript">
+  function selectedPriorityTasks() {
+    return Array.prototype.slice.call(document.getElementsByClassName("tasklistdata")).filter(function(task) {
+      return task.checked;
+    });
+  }
+
+  function savePriorityTask(task) {
+    var baseurl = document.getElementById("baseurl").value;
+    return $.ajax({
+      type: "POST",
+      url: baseurl + "index.php/completetodaystask",
+      data: {
+        client_id: task.getAttribute("data-client-id"),
+        module: task.getAttribute("data-module"),
+        associated_id: task.getAttribute("data-associated-id"),
+        details: task.getAttribute("data-details")
+      }
+    });
+  }
+
+  function completePriorityTask(button) {
+    var row = button.closest(".priority-task-row");
+    var task = row ? row.querySelector(".tasklistdata") : null;
+    if (!task) {
+      return;
+    }
+
+    button.disabled = true;
+    savePriorityTask(task).done(function() {
+      location.reload();
+    }).fail(function(error) {
+      button.disabled = false;
+      alert("Unable to save the task as done.");
+      console.log(error);
+    });
   }
 
   function donetasklist() {
-      var baseurl = document.getElementById("baseurl").value;
-      var tasklistdata = document.getElementsByClassName("tasklistdata");
-      var tasklistdataid = "";
-      for(var h = 0; h < tasklistdata.length; h++) {
-          //alert(document.getElementById("tasklistdata_"+h).value);
-          if(document.getElementById("tasklistdata_"+h).checked == true) {
-            tasklistdataid = document.getElementById("tasklistdata_"+h).value;
-            $.ajax({
-                type: "GET",
-                url: baseurl + "index.php/donetasklist/" + tasklistdataid,
-                success: function(data) {
-                  alert("Successfully done Task ID # " + tasklistdataid);
-                  location.reload();
-                },
-                error: function(error) {
-                  alert(error);
-                }
-            });
-          }
-      }
+    var tasks = selectedPriorityTasks();
+    if (tasks.length == 0) {
+      alert("Please select at least one priority task.");
+      return;
+    }
+
+    $.when.apply($, tasks.map(savePriorityTask)).done(function() {
+      location.reload();
+    }).fail(function(error) {
+      alert("Unable to save one or more tasks as done.");
+      console.log(error);
+    });
   }
 
   function markasread() {

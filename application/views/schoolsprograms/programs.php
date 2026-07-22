@@ -28,8 +28,8 @@
         <div class="col-12">
           <input type="hidden" id="baseurl" value="<?php echo base_url(); ?>">
           <div class="card">
-            <div class="card-header">
-              <h3 class="card-title"><a href="newprogram">Add New Program</a></h3>
+            <div class="card-header app-create-toolbar">
+              <a href="newprogram" class="btn btn-primary app-create-btn"><i class="fas fa-plus" aria-hidden="true"></i> New Program</a>
             </div>
             <!-- /.card-header -->
             <div class="card-body">

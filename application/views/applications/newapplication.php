@@ -30,7 +30,7 @@
             <!-- /.card-header -->
             <div class="card-body">
               
-              <form action="<?php echo base_url(); ?>index.php/saveapplication" method="post" enctype="multipart/form-data">
+              <form action="<?php echo base_url(); ?>index.php/saveapplication" method="post" enctype="multipart/form-data" id="applicationform">
                   <input type="hidden" name="formtype" value="new">
                 <div class="mb-3">
                   <label for="payee" class="form-label">Customer</label>
@@ -45,7 +45,7 @@
                 </div>
                 <div class="mb-3">
                   <label for="client" class="form-label">School</label>
-                  <select class="form-control select2" name="school" id="provider" onchange="getPrograms()" required>
+                  <select class="form-control select2" name="school" id="provider" onchange="getPrograms()" required style="width: 100%;">
                     <?php
                     foreach ($schools as $row) {
                       echo "<option value='".$row->provider_id."'>".$row->provider_name."</option>";
@@ -55,7 +55,7 @@
                 </div>
                 <div class="mb-3">
                   <label for="program" class="form-label">Program</label>
-                  <select class="form-control select2" name="program" id="programlist" required>
+                  <select class="form-control select2" name="program[]" id="programlist" required multiple style="width: 100%;">
                   </select>
                 </div>
                 <div class="mb-3">
@@ -91,7 +91,7 @@
                     <input type="file" class="form-control" name="vevoexpiry" id="vevoexpiry">
                     <p id="warning" style="color: red; display: none;">File size exceeds 10MB! Please select a smaller file.</p>
                 </div>
-                <button type="submit" class="btn btn-primary">Submit</button>
+                <button type="submit" class="btn btn-primary" id="applicationsubmit">Submit</button>
               </form>
 
             </div>
@@ -139,22 +139,26 @@
 
 <script>
 
-  $('.select2').select2();
+  $('.select2').select2({
+    width: '100%'
+  });
 
   var baseurl = document.getElementById("baseurl").value;
 
   initialPrograms();
   function initialPrograms() {
+    var id = document.getElementById("provider").value;
     $("#programlist").empty();
     $.ajax({
           type: "GET",
-          url: baseurl + "index.php/getprogramfromschool/1",
+          url: baseurl + "index.php/getprogramfromschool/" + id,
           success: function(data) {
               var obj = JSON.parse(data);
               //alert(obj[0].program);
               for(var i = 0; i < obj.length; i++) {
                 $("#programlist").append("<option value=" + obj[i].spid + ">" + obj[i].program + "</option>");
               }
+              $("#programlist").trigger("change");
           },
           error: function(error) {
             alert("Error!");
@@ -174,6 +178,7 @@
               for(var i = 0; i < obj.length; i++) {
                 $("#programlist").append("<option value=" + obj[i].spid + ">" + obj[i].program + "</option>");
               }
+              $("#programlist").trigger("change");
           },
           error: function(error) {
             alert("Error!");
@@ -197,7 +202,9 @@
   
 </script>
 <script>
-    $('.select2').select2();
+    $('.select2').select2({
+      width: '100%'
+    });
 </script>
 <script>
 document.getElementById("vevoexpiry").addEventListener("change", function () {
@@ -211,6 +218,9 @@ document.getElementById("vevoexpiry").addEventListener("change", function () {
     } else {
         warning.style.display = "none"; // Hide warning if file is valid
     }
+});
+document.getElementById("applicationform").addEventListener("submit", function () {
+    document.getElementById("applicationsubmit").disabled = true;
 });
 </script>
 </body>

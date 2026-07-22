@@ -1,6 +1,15 @@
 <?php
     $this->load->view('layout/header');
 
+    $active_client_page = isset($active_client_page) ? $active_client_page : 'marketing';
+    $client_page_urls = array(
+      'marketing' => base_url().'index.php/editclientinfo2/'.$client_id,
+      'counselling' => base_url().'index.php/editclientinfo2/'.$client_id.'/counselling',
+      'admission' => base_url().'index.php/editclientinfo2/'.$client_id.'/admission',
+      'file-manager' => base_url().'index.php/editclientinfo2/'.$client_id.'/file-manager',
+      'result' => base_url().'index.php/editclientinfo2/'.$client_id.'/result'
+    );
+
 ?>
 
   <!-- Content Wrapper. Contains page content -->
@@ -31,126 +40,69 @@
             <!-- /.card-header -->
             <div class="card-body">
               
-                <ul class="nav nav-tabs" id="myTab" role="tablist">
+                <style>
+                  .client-page-nav {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 8px;
+                    margin-bottom: 20px;
+                    padding-bottom: 14px;
+                    border-bottom: 1px solid #dee2e6;
+                  }
+                  .client-page-nav .client-page-link {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    min-height: 34px;
+                    padding: 8px 14px;
+                    border: 1px solid #d5dce5;
+                    border-radius: 4px;
+                    background: #fff;
+                    color: #007bff;
+                    line-height: 1;
+                    text-decoration: none;
+                  }
+                  .client-page-nav .client-page-link.active {
+                    border-color: #007bff;
+                    background: #007bff;
+                    color: #fff;
+                  }
+                </style>
+                <div class="client-page-nav" aria-label="Client information pages">
                   <?php
                     if ($privilege_manage_clients == "1") {
                   ?>
-                  <li class="nav-item">
-                    <a class="nav-link customerinfotabs" id="clientinfo-tab" data-toggle="tab" href="#clientinfo" role="tab" aria-controls="clientinfo" aria-selected="true">Marketing</a>
-                  </li>
+                    <a class="client-page-link <?php echo $active_client_page == 'marketing' ? 'active' : ''; ?>" id="clientinfo-tab" href="<?php echo $client_page_urls['marketing']; ?>">Marketing</a>
                   <?php
                     }
                   ?>
                   <?php
                     if ($privilege_manage_studentdocs == "1") {
                   ?>
-                  <li class="nav-item">
-                    <a class="nav-link customerinfotabs" id="documents-tab" data-toggle="tab" href="#documents" role="tab" aria-controls="documents" aria-selected="false">Counselling</a>
-                  </li>
+                    <a class="client-page-link <?php echo $active_client_page == 'counselling' ? 'active' : ''; ?>" id="documents-tab" href="<?php echo $client_page_urls['counselling']; ?>">Counselling</a>
                   <?php
                     }
                   ?>
                   
-                  <li class="nav-item">
-                    <a class="nav-link customerinfotabs" id="admission-tab" data-toggle="tab" href="#admission" role="tab" aria-controls="admission" aria-selected="false">Admission</a>
-                  </li>
+                    <a class="client-page-link <?php echo $active_client_page == 'admission' ? 'active' : ''; ?>" id="admission-tab" href="<?php echo $client_page_urls['admission']; ?>">Admission</a>
                   
-                  <!--<li class="nav-item">-->
-                  <!--  <a class="nav-link" id="payments-tab" data-toggle="tab" href="#payments" role="tab" aria-controls="payments" aria-selected="false">Payments</a>-->
-                  <!--</li>-->
                   <?php
                     if ($privilege_manage_prdocs == "1") {
                   ?>
-                  <li class="nav-item">
-                    <a class="nav-link customerinfotabs" id="visa-documentation-tab" data-toggle="tab" href="#visa-documentation" role="tab" aria-controls="visa-documentation" aria-selected="false">Visa Documentation</a>
-                  </li>
-                  <?php
-                    }
-                  ?>
-                  <?php
-                    if ($privilege_manage_prdocs == "1") {
-                  ?>
-                  <li class="nav-item">
-                    <a class="nav-link customerinfotabs" id="finalization-tab" data-toggle="tab" href="#finalization" role="tab" aria-controls="finalization" aria-selected="false">Finalization</a>
-                  </li>
+                    <a class="client-page-link <?php echo $active_client_page == 'file-manager' ? 'active' : ''; ?>" id="file-manager-tab" href="<?php echo $client_page_urls['file-manager']; ?>">File Manager</a>
                   <?php
                     }
                   ?>
                   <?php
                     if ($privilege_manage_clients == "1") {
                   ?>
-                  <li class="nav-item">
-                    <a class="nav-link customerinfotabs" id="result-tab" data-toggle="tab" href="#result" role="tab" aria-controls="result" aria-selected="false">Result</a>
-                  </li>
+                    <a class="client-page-link <?php echo $active_client_page == 'result' ? 'active' : ''; ?>" id="result-tab" href="<?php echo $client_page_urls['result']; ?>">Result</a>
                   <?php
                     }
                   ?>
-                  <!--
-                  <li class="nav-item">
-                    <a class="nav-link customerinfotabs" id="programoptions-tab" data-toggle="tab" href="#programoptions" role="tab" aria-controls="programoptions" aria-selected="false">Program Options</a>
-                  </li>
-                  -->
-                  
-                  <!--
-                  <?php
-                    if ($privilege_manage_studentapps == "1") {
-                  ?>
-                  <li class="nav-item">
-                    <a class="nav-link customerinfotabs" id="studentapplication-tab" data-toggle="tab" href="#studentapplication" role="tab" aria-controls="studentapplication" aria-selected="false">Student Application</a>
-                  </li>
-                  <?php
-                    }
-                  ?>
-                  -->
-                  
-                  <!--
-                  <?php
-                    if ($privilege_manage_prapps == "1" && $privilege_manage_prdocs == "1") {
-                  ?>
-                  
-                  <li class="nav-item">
-                    <a class="nav-link customerinfotabs" id="visaapplication-tab" data-toggle="tab" href="#visaapplication" role="tab" aria-controls="visaapplication" aria-selected="false">Visa Applications</a>
-                  </li>
-                  
-                  <li class="nav-item">
-                    <a class="nav-link" id="visaeoi-tab" data-toggle="tab" href="#visaeoi" role="tab" aria-controls="visaeoi" aria-selected="false">Visa EOI</a>
-                  </li>
-                  
-                  <?php
-                    }
-                  ?>
-                  -->
-                  
-                  <!--
-                  <?php
-                    if ($privilege_manage_prfeereceived == "1" && $privilege_manage_prfeepaid == "1") {
-                  ?>
-                  <li class="nav-item">
-                    <a class="nav-link customerinfotabs" id="visaaccount-tab" data-toggle="tab" href="#visaaccount" role="tab" aria-controls="visaaccount" aria-selected="false">Visa Accounts</a>
-                  </li>
-                  <?php
-                    }
-                  ?>
-                  -->
-                  
-                  <!--
-                  <?php
-                    if ($privilege_manage_studentapps == "1") {
-                  ?>
-                  <li class="nav-item">
-                    <a class="nav-link customerinfotabs" id="scholarshipallocation-tab" data-toggle="tab" href="#scholarshipallocation" role="tab" aria-controls="scholarshipallocation" aria-selected="false">Scholarship Allocation</a>
-                  </li>
-                  <?php
-                    }
-                  ?>
-                  -->
-                  
-                  <!--<li class="nav-item">
-                    <a class="nav-link" id="payments-tab" data-toggle="tab" href="#payments" role="tab" aria-controls="payments" aria-selected="false">Payments</a>
-                  </li>-->
-                </ul>
+                </div>
                 <div class="tab-content" id="myTabContent">
-                  <div class="tab-pane fade show active" id="clientinfo" role="tabpanel" aria-labelledby="clientinfo-tab">
+                  <div class="tab-pane <?php echo $active_client_page == 'marketing' ? 'active' : ''; ?>" id="clientinfo" role="tabpanel" aria-labelledby="clientinfo-tab">
                 <br>
                 <form action="<?php echo base_url().'index.php/customerinfocontroller/do_upload' ?>" method="post"  onsubmit="validateData(event);" enctype="multipart/form-data">
                 <?php 
@@ -405,7 +357,7 @@
     
                   <div class="tab-pane fade" id="studentapplication" role="tabpanel" aria-labelledby="studentapplication-tab" style="overflow-x: scroll;">
                     <br>
-                    <a href="<?php echo base_url(); ?>index.php/newapplication/<?php echo $client_id; ?>" class="btn btn-primary">New Application</a>
+                    <a href="<?php echo base_url(); ?>index.php/newapplication/<?php echo $client_id; ?>" class="btn btn-primary app-create-btn"><i class="fas fa-plus" aria-hidden="true"></i> New Application</a>
                     <br><br>
                     <table id="example1" class="table table-bordered table-striped">
                       <thead>
@@ -450,7 +402,7 @@
                   
     -->
                   
-        <div class="tab-pane fade" id="documents" role="tabpanel" aria-labelledby="documents-tab">
+        <div class="tab-pane <?php echo $active_client_page == 'counselling' ? 'active' : ''; ?>" id="documents" role="tabpanel" aria-labelledby="documents-tab">
                        <!--<button type="button" class="btn btn-danger" id="deletedocumentfile">Delete Document</button>-->   
                       <input type="hidden" id="client_id2" value="<?php echo $client_id; ?>">
                       <input type="hidden" id="documentbaseurl" value="<?php echo base_url(); ?>">
@@ -478,168 +430,90 @@
                       <?php
                     if ($privilege_manage_studentdocs == "1") {
                   ?>
-                      <h5>Student Interview Form</h5>
-                      <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#interviewModal">New Interview</button>
-                      <table id="example1" class="table table-bordered table-striped">
-                      <thead>
-                      <tr>
-                        <th>Interview Date</th>
-                        <th>Time</th>
-                        <th>Fully Accomplished Interview Form Link</th>
-                        <th></th>
-                      </tr>
-                      </thead>
-                      <tbody>
-                      <?php
-                      foreach ($interviews as $row) {
-
-                        $dynamicDate = $row->interview_datetime;
-                        $timestamp = strtotime($dynamicDate);
-                
-                        echo "<tr>
-                                <td>".date('d/m/Y', $timestamp)."</td>
-                                <td>".date('h:i A', $timestamp)."</td>
-                                <td><a href='".base_url()."assets/interviews/".$row->interview_link."'>".base_url()."assets/interviews/".$row->interview_link."</a></td>
-                                <td><a href='".base_url()."index.php/editfile?type=interviews&id=".$row->id."&client=".$row->client_id."' class='btn btn-primary btn-xs'><i class='fa fa-edit' aria-hidden='true'></i></a> "."<a href='".base_url()."index.php/deletefile?type=interviews&id=".$row->id."&client=".$row->client_id."' class='btn btn-danger btn-xs confirmation'><i class='fa fa-trash' aria-hidden='true'></i></a>"."</td>
-                              </tr>";
-                      }
-                      ?>
-                      </tbody>
-                    </table>
+                      <div class="file-shortcut-section">
+                        <h5>Student Interview Form</h5>
+                        <p class="text-muted">Interview form files are managed in <a href="#file-manager" class="file-manager-shortcut" data-purpose="Counselling" data-type="Interview Form" data-specific="Interview Form">File Manager under Counselling &gt; Interview Form</a>.</p>
+                      </div>
                     <?php
                     }
                   ?>
-                    <br>
-                    <h5>Program Options Form</h5>
-                    <a href="<?php echo base_url(); ?>index.php/newprogramoption/<?php echo $client_id; ?>" class="btn btn-primary">New Program Option</a>
-                    <table id="programoptionstable2" class="table table-bordered table-striped">
-                        <thead>
-                        <tr>
-                          <th>School</th>
-                          <th>Program</th>
-                          <th>Indicative Annual Cost</th>
-                          <th>Duration</th>
-                          <th>Application Type</th>
-                          <th>Requirement</th>
-                          <th>Campus Location</th>
-                          <th>Intake</th>
-                          <th>PO Approval Link</th>
-                          <th></th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <?php
-                        
-                        foreach ($programoptions as $row) {
-                          if($this->session->officer_role == "regional manager" || $this->session->officer_role == "admin" || $this->session->officer_role == "manager") {
-                              $deleteprogramoption = "<a href='".base_url()."index.php/deletepo/".$row->poid."/".$client_id."' class='btn btn-danger btn-xs confirmation'><i class='fa fa-trash' aria-hidden='true'></i></a>";
-                          } else {
-                              $deleteprogramoption = "";
-                          }
+                    <div class="file-shortcut-section">
+                      <h5>Program Options</h5>
+                      <p class="text-muted">Program option files are managed in <a href="#file-manager" class="file-manager-shortcut" data-purpose="Counselling" data-type="Program Options" data-specific="Program Options">File Manager under Counselling &gt; Program Options</a>.</p>
+                      <div class="table-responsive po-link-table-wrap">
+                        <table class="table table-bordered table-striped po-link-table">
+                          <thead>
+                            <tr>
+                              <th>PO Acceptance Link</th>
+                              <th>Date Created</th>
+                              <th>Accessed</th>
+                              <th>Status</th>
+                              <th>Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <?php
+                              $poLinks = isset($po_links) ? $po_links : array();
+                              if (count($poLinks) == 0) {
+                                echo '<tr><td colspan="5" class="text-center text-muted">No Program Options acceptance link is available yet. Upload a Program Options file in File Manager to create one.</td></tr>';
+                              }
+                              foreach ($poLinks as $poLinkRow) {
+                                $approvalLabel = 'Pending';
+                                if ((int) $poLinkRow->approved === 1) {
+                                  $approvalLabel = 'Approved';
+                                } elseif ((int) $poLinkRow->approved === -1) {
+                                  $approvalLabel = 'Rejected';
+                                }
 
-                          echo "<tr>
-                            <td>".$row->provider_name."</td>
-                            <td>".$row->program."</td>
-                            <td>".$row->indicativeannualcost."</td>
-                            <td>".$row->duration."</td>
-                            <td>".$row->location."</td>
-                            <td>".$row->englishrequirement."</td>
-                            <td>".$row->pocampuslocation."</td>
-                            <td>".$row->pointake."</td>
-                            <td><a href='".base_url()."index.php/programoptionform2/".$row->poid."' target='_blank'>".base_url()."index.php/programoptionform/".$row->poid."</a></td>
-                            <td><a href='".base_url()."index.php/editprogramoptions/".$row->poid."' class='btn btn-primary btn-xs'><i class='fa fa-edit' aria-hidden='true'></i></a> ".$deleteprogramoption."</td>
-                          </tr>";
-                        }
-                        
-                        ?>
-                        </tbody>
-                      </table>
+                                $accessedLabel = (int) $poLinkRow->accessed === 1 ? 'Yes' : 'No';
+                                $dateCreated = !empty($poLinkRow->date_created) ? date('d/m/Y h:i A', strtotime($poLinkRow->date_created)) : '';
+                                $linkValue = htmlspecialchars($poLinkRow->link, ENT_QUOTES, 'UTF-8');
+                                echo '<tr>
+                                  <td><input type="text" class="form-control form-control-sm po-link-input" value="'.$linkValue.'" readonly></td>
+                                  <td>'.$dateCreated.'</td>
+                                  <td>'.$accessedLabel.'</td>
+                                  <td>'.$approvalLabel.'</td>
+                                  <td>
+                                    <button type="button" class="btn btn-outline-primary btn-xs copy-po-link" data-link="'.$linkValue.'" title="Copy link"><i class="fa fa-copy"></i></button>
+                                    <button type="button" class="btn btn-outline-primary btn-xs send-po-link" data-link-id="'.(int) $poLinkRow->id.'" data-client-id="'.(int) $client_id.'" title="Send email"><i class="fa fa-envelope"></i></button>
+                                  </td>
+                                </tr>';
+                              }
+                            ?>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
                     <?php
                     if ($privilege_view_fees == "1") {
                   ?>
-                    <br>
-                    <h5>Fees</h5>
-                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#feeModal">New Fee</button>
-                    <table id="example1" class="table table-bordered table-striped">
-                      <thead>
-                      <tr>
-                        <th>Description</th>
-                        <th>Date</th>
-                        <th style="width: 60%;">Remarks</th>
-                        <th>Receipt</th>
-                        <th></th>
-                      </tr>
-                      </thead>
-                      <tbody>
-                      <?php
-                      foreach ($fees as $row) {
-                        $dynamicDate = $row->fee_date;
-                        $timestamp = strtotime($dynamicDate);
-                        echo "<tr>
-                                <td>".$row->fee_description."</td>
-                                <td>".date('d/m/Y', $timestamp)."</td>
-                                <td>".$row->fee_remarks."</td>
-                                <td><a href='".base_url()."assets/fees/".$row->fee_receipt."'>".base_url()."assets/fees/".$row->fee_receipt."</a></td>
-                                <td><a href='".base_url()."index.php/editfile?type=fee&id=".$row->id."&client=".$row->client_id."' class='btn btn-primary btn-xs'><i class='fa fa-edit' aria-hidden='true'></i></a> "."<a href='".base_url()."index.php/deletefile?type=fee&id=".$row->id."&client=".$row->client_id."' class='btn btn-danger btn-xs confirmation'><i class='fa fa-trash' aria-hidden='true'></i></a>"."</td>
-                              </tr>";
-                              
-                      }
-                      ?>
-                      </tbody>
-                    </table>
+                    <div class="file-shortcut-section">
+                      <h5>Fees</h5>
+                      <p class="text-muted">Fee receipts are managed in <a href="#file-manager" class="file-manager-shortcut" data-purpose="Counselling" data-type="Fees" data-specific="">File Manager under Counselling &gt; Fees</a>.</p>
+                    </div>
                     <?php
                     }
                   ?>
                     <?php
                     if ($privilege_manage_studentdocs == "1") {
                   ?>
-                    <br>
-                      <h5>Document Attachment</h5>
-                      <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#counsellingDocumentModal">Upload New Document</button>
-                      <table id="example1" class="table table-bordered table-striped">
-                      <thead>
-                      <tr>
-                        <th style="width: 50%;">Description</th>
-                        <th style="width: 20%;">Attachment Link</th>
-                        <th></th>
-                      </tr>
-                      </thead>
-                      <tbody>
-                      <?php
-                      foreach ($firebasefiles as $row) {
-                        if (
-                            $row->document_type == "Updated CV" || 
-                            $row->document_type == "Birth Certificate" || 
-                            $row->document_type == "Transcript of Records/ Form 138" || 
-                            $row->document_type == "Employment Certificates" || 
-                            $row->document_type == "Passport" || 
-                            $row->document_type == "Diploma" || 
-                            $row->document_type == "Award Certificates" || 
-                            $row->document_type == "IELTS/ PTE"
-                        ) {
-                            echo "<tr>
-                                <td>".$row->document_type."</td>
-                                <td><a href='".$row->document_link."'>".$row->document_link."</a></td>
-                                <td><a href='".base_url()."index.php/editfirebasefile?id=".$row->fbid."&client=".$row->client_id."' class='btn btn-primary btn-xs'><i class='fa fa-edit' aria-hidden='true'></i></a> "."<a href='".base_url()."index.php/deletefirebasefile?id=".$row->fbid."&client=".$row->client_id."' class='btn btn-danger btn-xs confirmation'><i class='fa fa-trash' aria-hidden='true'></i></a>"."</td>
-                              </tr>";  
-                        }
-                      }
-                      ?>
-                      </tbody>
-                    </table>
+                      <div class="file-shortcut-section">
+                        <h5>Document Attachment</h5>
+                        <p class="text-muted">Initial requirement files are managed in <a href="#file-manager" class="file-manager-shortcut" data-purpose="Counselling" data-type="Initial Requirements" data-specific="">File Manager under Counselling &gt; Initial Requirements</a>.</p>
+                      </div>
                     <?php
                     }
                   ?>
         </div>
         
         
-        <div class="tab-pane fade" id="admission" role="tabpanel" aria-labelledby="admission-tab" style="overflow-x: scroll;">
+        <div class="tab-pane <?php echo $active_client_page == 'admission' ? 'active' : ''; ?>" id="admission" role="tabpanel" aria-labelledby="admission-tab" style="overflow-x: scroll;">
                     <?php
                     if ($privilege_manage_studentapps == "1") {
                   ?>
                     <br>
                     <h5>Student Application</h5>
-                    <a href="<?php echo base_url(); ?>index.php/newapplication/<?php echo $client_id; ?>" class="btn btn-primary">New Application</a>
+                    <a href="<?php echo base_url(); ?>index.php/newapplication/<?php echo $client_id; ?>" class="btn btn-primary app-create-btn"><i class="fas fa-plus" aria-hidden="true"></i> New Application</a>
                     <br><br>
                     <?php
                         foreach($client as $row1) {
@@ -750,38 +624,50 @@
                     <br><br>
                     <?php } ?>
                     <?php
-                    if ($privilege_manage_studentdocs == "1") {
+                    if ($privilege_manage_prapps == "1") {
                   ?>
-                    <h5>Requirements</h5>
-                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#offerLetterModal" id="conditionalOfferLetterModalButton">New Offer Letter</button><br><br>
-                    <table id="example1" class="table table-bordered table-striped">
+                    <h5>Visa Application</h5>
+                    <a href="<?php echo base_url(); ?>index.php/newvisaapplication/<?php echo $client_id; ?>" class="btn btn-primary app-create-btn"><i class="fas fa-plus" aria-hidden="true"></i> New Visa Application</a>
+                    <br><br>
+                    <table id="visaapplicationtable" class="table table-bordered table-striped">
                       <thead>
                       <tr>
-                        <th>Type</th>
-                        <th>Offer Letter</th>
-                        <th>Date</th>
-                        <th>Remarks</th>
-                        <th>Attachment Link</th>
-                        <th>Actions</th>
+                        <th>Client</th>
+                        <th>Visa Subclass</th>
+                        <th>Critical Date</th>
+                        <th>Status</th>
+                        <th></th>
                       </tr>
                       </thead>
                       <tbody>
                       <?php
-                      foreach ($admissionofferletter as $row) {
-                            $dynamicDate = $row->date;
-                            $timestamp = strtotime($dynamicDate);
-                            echo "<tr>
-                                    <td>".$row->type."</td>
-                                    <td>".$row->conditionaloffer."</td>
-                                    <td>".date('d/m/Y', $timestamp)."</td>
-                                    <td>".$row->remarks."</td>
-                                    <td><a href='".base_url()."assets/offerletters/".$row->attachmentlink."'>".base_url()."assets/offerletters/".$row->attachmentlink."</a></td>
-                                    <td><a href='".base_url()."index.php/editfile?type=admissionofferletter&id=".$row->id."&client=".$row->client_id."' class='btn btn-primary btn-xs'><i class='fa fa-edit' aria-hidden='true'></i></a> "."<a href='".base_url()."index.php/deletefile?type=admissionofferletter&id=".$row->id."&client=".$row->client_id."' class='btn btn-danger btn-xs confirmation'><i class='fa fa-trash' aria-hidden='true'></i></a>"."</td>
-                                  </tr>";
+                      foreach ($visa_application as $row) {
+                        if($this->session->officer_role == "regional manager" || $this->session->officer_role == "admin" || $this->session->officer_role == "manager") {
+                            $deletevap = "<a href='".base_url()."index.php/deletevisaapplication/".$row->client_visa_id."/".$client_id."' class='btn btn-danger btn-xs confirmation'><i class='fa fa-trash' aria-hidden='true'></i></a>";
+                        } else {
+                            $deletevap = "";
+                        }
+
+                        echo "<tr>
+                          <td>".$row->client_surname.", ".$row->client_firstname."</td>
+                          <td>".$row->new_Visa_subclass."</td>
+                          <td>".$row->visa_critical_month."/".$row->visa_critical_day."/".$row->visa_critical_year."</td>
+                          <td>".$row->status."</td>
+                          <td><a href='".base_url()."index.php/editvisaapplication/".$row->client_visa_id."' class='btn btn-primary btn-xs'><i class='fa fa-edit' aria-hidden='true'></i></a> ".$deletevap."</td>
+                        </tr>";
                       }
                       ?>
                       </tbody>
                     </table>
+                    <br><br>
+                 <?php
+                    }
+                  ?>
+                    <?php
+                    if ($privilege_manage_studentdocs == "1") {
+                  ?>
+                    <h5>Requirements</h5>
+                    <p class="text-muted">Offer letter files are managed in <a href="#file-manager" class="file-manager-shortcut" data-purpose="Admission" data-type="Offer Letter" data-specific="">File Manager under Admission &gt; Offer Letter</a>.</p>
                  <?php
                     }
                   ?>   
@@ -817,15 +703,231 @@
                     <!--  </tbody>-->
                     <!--</table>-->
         </div>
-        
-        
+        <div class="tab-pane <?php echo $active_client_page == 'file-manager' ? 'active' : ''; ?>" id="file-manager" role="tabpanel" aria-labelledby="file-manager-tab">
+          <?php
+            $fileManagerDocuments = array();
+            $schoolDocuments = array("Confirmation of Environment", "OSHC Certificate", "Form 956", "Form 157A", "Excel", "Medical", "Passport Stamps", "English Proficiency Test", "CV", "Employment Certificate");
+            $financialEvidenceDocuments = array("Financial Support Statement", "Passport/ Valid ID", "Birth Certificate/ Marriage Certificate", "Family Tree", "Payslip/ ITR", "Assets");
+            $assetDocuments = array("Land Title", "OR/CR", "Deed of Sale", "DTI Permit", "BIR Permit", "BIR Certificate of Registration", "Business Permit/ Mayor's Permit/ Barangay Clearance", "Tax Payment/ BIR");
+            $financialDocuments = array("Bank statements", "Bank Certificate");
+            $gsrDocuments = array("GSR", "GSR - Students", "GSR - Admin", "GSR - HO");
+            $finalGsrDocuments = array("Final GSR");
+            $finalDhaDocuments = array("Final DHA");
+            $medicalDocuments = array("Medical");
+            $biometricsDocuments = array("Biometrics");
+            $additionalDocuments = array("Additional Documents");
+            $lodgeVisaDocuments = array("Lodge Visa");
+            $s56Documents = array("S56");
+            $offerLetterDocuments = array("Conditional Offer Letter", "Provisional Offer Letter", "Full Offer Letter", "GSR", "Financial Documents", "IELTS/PTE");
+            $feeDocuments = array("Admin Fee", "Refusal Fee", "Processing Fee", "Tuition Fee", "Visa Application Fee", "OSCH", "Others");
+            $interviewFormDocuments = array("Interview Form");
+            $programOptionDocuments = array("Program Options");
+            $initialRequirementDocuments = array("Updated CV", "Birth Certificate", "Transcript of Records/ Form 138", "Employment Certificates", "Passport", "Diploma", "Award Certificates", "IELTS/ PTE");
+
+            $studentDriveFiles = isset($student_drive_files) ? $student_drive_files : array();
+            foreach ($studentDriveFiles as $fileRow) {
+                $fileManagerDocuments[] = array(
+                    "row" => $fileRow,
+                    "purpose" => isset($fileRow->document_purpose) && $fileRow->document_purpose != "" ? $fileRow->document_purpose : "Visa Documentation",
+                    "document_group" => isset($fileRow->document_type) && $fileRow->document_type != "" ? $fileRow->document_type : "Other Documents",
+                    "document_specific" => isset($fileRow->document_specific) && $fileRow->document_specific != "" ? $fileRow->document_specific : ""
+                );
+            }
+
+            $hasGsdFolder = isset($student_drive_folder) && $student_drive_folder;
+          ?>
+          <style>
+            .file-manager-shell { border: 1px solid #dee2e6; border-radius: 6px; padding: 18px; margin-top: 16px; }
+            .file-manager-title { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+            .file-manager-muted { color: #6c757d; margin-bottom: 24px; }
+            .file-manager-filter label { display: block; font-weight: 600; margin-bottom: 8px; }
+            .file-manager-actions { display: flex; gap: 10px; flex-wrap: wrap; margin: 16px 0 26px; }
+            .file-manager-empty { min-height: 620px; display: flex; align-items: center; justify-content: center; text-align: center; }
+            .file-manager-empty-icon { width: 160px; height: 160px; border-radius: 50%; background: #eef7ff; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 26px; color: #80c2f4; font-size: 58px; }
+            .file-manager-empty h3 { font-size: 20px; font-weight: 700; margin-bottom: 14px; }
+            .file-manager-empty p { color: #5f6b7a; font-size: 16px; max-width: 560px; margin: 0 auto 28px; line-height: 1.6; }
+            .file-manager-file { display: flex; align-items: center; gap: 12px; min-width: 230px; }
+            .file-manager-file-icon { width: 28px; height: 34px; border-radius: 3px; color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; flex: 0 0 auto; }
+            .file-manager-file-icon.pdf { background: #ef3f3f; }
+            .file-manager-file-icon.doc { background: #2d7dd2; }
+            .file-manager-file-icon.xls { background: #279c5b; }
+            .file-manager-file-icon.file { background: #6c757d; }
+            .file-manager-upload-file { padding: 6px; height: 44px; }
+            .file-manager-table th, .file-manager-table td { vertical-align: middle !important; }
+            .file-manager-table .btn-xs { min-width: 34px; }
+            .file-shortcut-section { margin: 0 0 28px; }
+            .file-shortcut-section h5 { margin: 0 0 8px; font-weight: 700; }
+            .file-shortcut-section p { margin: 0; }
+            .po-link-table-wrap { margin-top: 14px; max-width: 1120px; }
+            .po-link-table th, .po-link-table td { vertical-align: middle !important; }
+            .po-link-table .po-link-input { min-width: 360px; background: #fff; }
+            .po-link-table .btn-xs { min-width: 34px; }
+          </style>
+
+          <div class="file-manager-shell">
+            <div id="fileManagerEmptyState" class="file-manager-empty" style="<?php echo $hasGsdFolder ? 'display:none;' : ''; ?>">
+              <div>
+                <div class="file-manager-empty-icon">
+                  <i class="fab fa-google-drive"></i>
+                </div>
+                <h3>This client account has no folder on Google Shared Drive yet.</h3>
+                <p>A Google Shared Drive folder will be created for this client to store and manage all documents in one secure place.</p>
+                <button type="button" class="btn btn-primary" id="createGsdFolderNow">
+                  <i class="fab fa-google-drive"></i> Create GSD folder now
+                </button>
+              </div>
+            </div>
+
+            <div id="fileManagerDashboard" style="<?php echo $hasGsdFolder ? '' : 'display:none;'; ?>">
+              <div class="file-manager-title">File Manager</div>
+              <div class="file-manager-muted">Manage and organize all client documents. Use the filters to view specific files or upload new documents.</div>
+
+              <div class="row file-manager-filter">
+                <div class="col-lg-3 col-md-6 mb-3">
+                  <label for="fileManagerPurposeFilter">Purpose</label>
+                  <select class="form-control" id="fileManagerPurposeFilter">
+                    <option value="">All Purposes</option>
+                    <option value="Admission">Admission</option>
+                    <option value="Counselling">Counselling</option>
+                    <option value="Visa Documentation">Visa Documentation</option>
+                    <option value="Finalization">Finalization</option>
+                  </select>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-3">
+                  <label for="fileManagerTypeFilter">Document Type</label>
+                  <select class="form-control" id="fileManagerTypeFilter">
+                    <option value="">All Document Types</option>
+                    <option value="Fees">Fees</option>
+                    <option value="Initial Requirements">Initial Requirements</option>
+                    <option value="Interview Form">Interview Form</option>
+                    <option value="Offer Letter">Offer Letter</option>
+                    <option value="Program Options">Program Options</option>
+                    <option value="School Documents">School Documents</option>
+                    <option value="Financial Evidence">Financial Evidence</option>
+                    <option value="Asset Documents">Asset Documents</option>
+                    <option value="Financial Documents">Financial Documents</option>
+                    <option value="Medical">Medical</option>
+                    <option value="Biometrics">Biometrics</option>
+                    <option value="Final GSR">Final GSR</option>
+                    <option value="Final DHA">Final DHA</option>
+                    <option value="Additional Documents">Additional Documents</option>
+                    <option value="Lodge Visa">Lodge Visa</option>
+                    <option value="S56">S56</option>
+                  </select>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-3">
+                  <label for="fileManagerSpecificFilter">Document Specific</label>
+                  <select class="form-control" id="fileManagerSpecificFilter">
+                    <option value="">All Document Specifics</option>
+                    <?php
+                      $documentSpecifics = array_merge(
+                          $schoolDocuments,
+                          $financialEvidenceDocuments,
+                          $assetDocuments,
+                          $financialDocuments,
+                          $gsrDocuments,
+                          $finalGsrDocuments,
+                          $finalDhaDocuments,
+                          $medicalDocuments,
+                          $biometricsDocuments,
+                          $additionalDocuments,
+                          $lodgeVisaDocuments,
+                          $s56Documents,
+                          $offerLetterDocuments,
+                          $feeDocuments,
+                          $interviewFormDocuments,
+                          $programOptionDocuments,
+                          $initialRequirementDocuments
+                      );
+                      $documentSpecifics = array_unique($documentSpecifics);
+                      sort($documentSpecifics);
+                      foreach ($documentSpecifics as $specific) {
+                          echo '<option value="'.htmlspecialchars($specific, ENT_QUOTES).'">'.htmlspecialchars($specific).'</option>';
+                      }
+                    ?>
+                  </select>
+                </div>
+                <div class="col-lg-3 col-md-6 mb-3">
+                  <label for="fileManagerUploadFile">Upload New Document</label>
+                  <input type="file" class="form-control file-manager-upload-file" id="fileManagerUploadFile">
+                </div>
+              </div>
+
+              <div class="file-manager-actions">
+                <button type="button" class="btn btn-primary" id="fileManagerUploadVisa">
+                  <i class="fas fa-cloud-upload-alt"></i> Upload File
+                </button>
+                <button type="button" class="btn btn-outline-primary" id="fileManagerClearFilters">
+                  <i class="fas fa-sync-alt"></i> Clear Filters
+                </button>
+              </div>
+
+              <table id="filemanagertable" class="table table-bordered table-striped file-manager-table">
+                <thead>
+                  <tr>
+                    <th>File Name</th>
+                    <th>Purpose</th>
+                    <th>Document Type</th>
+                    <th>Document Specific</th>
+                    <th>Uploaded By</th>
+                    <th>Upload Date</th>
+                    <th>File Size</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <?php
+                    foreach ($fileManagerDocuments as $document) {
+                        $row = $document["row"];
+                        $fileName = isset($row->drive_file_name) && $row->drive_file_name != "" ? $row->drive_file_name : "Google Drive file";
+                        $extension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+                        $iconClass = "file";
+                        $iconLabel = "FILE";
+                        if ($extension == "pdf") {
+                            $iconClass = "pdf";
+                            $iconLabel = "PDF";
+                        } elseif ($extension == "doc" || $extension == "docx") {
+                            $iconClass = "doc";
+                            $iconLabel = "DOC";
+                        } elseif ($extension == "xls" || $extension == "xlsx") {
+                            $iconClass = "xls";
+                            $iconLabel = "XLS";
+                        }
+                        $uploadedBy = isset($row->uploaded_by_name) && $row->uploaded_by_name != "" ? $row->uploaded_by_name : (isset($this->session->officer_name) ? $this->session->officer_name : "SMIC CRM");
+                        $timestamp = isset($row->created_at) ? strtotime($row->created_at) : false;
+                        $uploadDate = $timestamp ? date('M d, Y', $timestamp) : "";
+                        $fileSize = "-";
+                        if (isset($row->file_size) && $row->file_size > 0) {
+                            $fileSize = $row->file_size >= 1048576 ? round($row->file_size / 1048576, 2)." MB" : round($row->file_size / 1024, 2)." KB";
+                        }
+                        $fileLink = isset($row->drive_web_view_link) && $row->drive_web_view_link != "" ? $row->drive_web_view_link : "#";
+                        echo "<tr>
+                            <td><div class='file-manager-file'><span class='file-manager-file-icon ".$iconClass."'>".$iconLabel."</span><span>".htmlspecialchars($fileName)."</span></div></td>
+                            <td>".htmlspecialchars($document["purpose"])."</td>
+                            <td>".htmlspecialchars($document["document_group"])."</td>
+                            <td>".htmlspecialchars($document["document_specific"])."</td>
+                            <td>".htmlspecialchars($uploadedBy)."</td>
+                            <td>".$uploadDate."</td>
+                            <td>".$fileSize."</td>
+                            <td>
+                              <a href='".htmlspecialchars($fileLink, ENT_QUOTES)."' target='_blank' class='btn btn-outline-primary btn-xs' title='Open in Google Drive'><i class='fab fa-google-drive'></i></a>
+                            </td>
+                          </tr>";
+                    }
+                  ?>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
         <div class="tab-pane fade" id="visa-documentation" role="tabpanel" aria-labelledby="visa-documentation-tab" style="overflow-x: scroll;">
                       <br>
                       <h5>Collecting Documents and Forms</h5>
                       <br>
                       <br>
                       <h5>School Documents</h5>
-                      <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#visaDocumentModal" data-bs-type="schooldocuments" id="schoolDocumentModalButton">Upload New Document</button>
+                      <button type="button" class="btn btn-primary app-create-btn" data-toggle="modal" data-target="#visaDocumentModal" data-bs-type="schooldocuments" id="schoolDocumentModalButton"><i class="fas fa-plus" aria-hidden="true"></i> New Document</button>
                       <br><br>
                       <table id="example1" class="table table-bordered table-striped">
                       <thead>
@@ -868,7 +970,7 @@
                     </table>
                     <br>
                       <h5>Financial Evidence</h5>
-                      <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#visaDocumentModal" data-bs-type="financialevidence" id="financialEvidenceModalButton">Upload New Document</button>
+                      <button type="button" class="btn btn-primary app-create-btn" data-toggle="modal" data-target="#visaDocumentModal" data-bs-type="financialevidence" id="financialEvidenceModalButton"><i class="fas fa-plus" aria-hidden="true"></i> New Document</button>
                       <br><br>
                       <table id="example1" class="table table-bordered table-striped">
                       <thead>
@@ -908,7 +1010,7 @@
                     </table>
                     <br>
                       <h5>Asset Documents</h5>
-                      <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#visaDocumentModal" data-bs-type="assetdocuments" id="assetDocumentsModalButton">Upload New Document</button>
+                      <button type="button" class="btn btn-primary app-create-btn" data-toggle="modal" data-target="#visaDocumentModal" data-bs-type="assetdocuments" id="assetDocumentsModalButton"><i class="fas fa-plus" aria-hidden="true"></i> New Document</button>
                       <br><br>
                       <table id="example1" class="table table-bordered table-striped">
                       <thead>
@@ -949,7 +1051,7 @@
                     </table>
                     <br>
                       <h5>Financial Documents</h5>
-                      <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#visaDocumentModal" data-bs-type="financialdocuments" id="financialDocumentsModalButton">Upload New Document</button>
+                      <button type="button" class="btn btn-primary app-create-btn" data-toggle="modal" data-target="#visaDocumentModal" data-bs-type="financialdocuments" id="financialDocumentsModalButton"><i class="fas fa-plus" aria-hidden="true"></i> New Document</button>
                       <br><br>
                       <table id="example1" class="table table-bordered table-striped">
                       <thead>
@@ -984,7 +1086,7 @@
                     </table>
                     <br>
                       <h5>GSR</h5>
-                      <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#visaDocumentModal" data-bs-type="gsr" id="gsrModalButton">Upload New Document</button>
+                      <button type="button" class="btn btn-primary app-create-btn" data-toggle="modal" data-target="#visaDocumentModal" data-bs-type="gsr" id="gsrModalButton"><i class="fas fa-plus" aria-hidden="true"></i> New Document</button>
                       <br><br>
                       <table id="example1" class="table table-bordered table-striped">
                       <thead>
@@ -1025,42 +1127,8 @@
                       <br>
                       
                      
-                    <h5>Visa Application</h5>
-                      <a href="<?php echo base_url(); ?>index.php/newvisaapplication/<?php echo $client_id; ?>" class="btn btn-primary">New Visa Application</a>
-                      <br><br>
-                      <table id="visaapplicationtable" class="table table-bordered table-striped">
-                        <thead>
-                        <tr>
-                          <th>Client</th>
-                          <th>Visa Subclass</th>
-                          <th>Critical Date</th>
-                          <th>Status</th>
-                          <th></th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <?php
-                        foreach ($visa_application as $row) {
-                          if($this->session->officer_role == "regional manager" || $this->session->officer_role == "admin" || $this->session->officer_role == "manager") {
-                              $deletevap = "<a href='".base_url()."index.php/deletevisaapplication/".$row->client_visa_id."/".$client_id."' class='btn btn-danger btn-xs confirmation'><i class='fa fa-trash' aria-hidden='true'></i></a>";
-                          } else {
-                              $deletevap = "";
-                          }
-
-                          echo "<tr>
-                            <td>".$row->client_surname.", ".$row->client_firstname."</td>
-                            <td>".$row->new_Visa_subclass."</td>
-                            <td>".$row->visa_critical_month."/".$row->visa_critical_day."/".$row->visa_critical_year."</td>
-                            <td>".$row->status."</td>
-                            <td><a href='".base_url()."index.php/editvisaapplication/".$row->client_visa_id."' class='btn btn-primary btn-xs'><i class='fa fa-edit' aria-hidden='true'></i></a> ".$deletevap."</td>
-                          </tr>";
-                        }
-                        ?>
-                        </tbody>
-                      </table>
-                       <br>
                       <h5>Final GSR</h5>
-                      <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#finalizationDocumentModal" id="finalGSRModalButton">Upload New Document</button>
+                      <button type="button" class="btn btn-primary app-create-btn" data-toggle="modal" data-target="#finalizationDocumentModal" id="finalGSRModalButton"><i class="fas fa-plus" aria-hidden="true"></i> New Document</button>
                       <br><br>
                       <table id="example1" class="table table-bordered table-striped">
                       <thead>
@@ -1090,7 +1158,7 @@
                     </table>
                     <br>
                     <h5>Final DHA</h5>
-                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#finalizationDocumentModal" id="finalDHAModalButton">Upload New Document</button>
+                    <button type="button" class="btn btn-primary app-create-btn" data-toggle="modal" data-target="#finalizationDocumentModal" id="finalDHAModalButton"><i class="fas fa-plus" aria-hidden="true"></i> New Document</button>
                       <br><br>
                       <table id="example1" class="table table-bordered table-striped">
                       <thead>
@@ -1247,7 +1315,7 @@
                       
                       <br>
                     <h5>Medical</h5>
-                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#finalizationDocumentModal" id="medicalModalButton">Upload New Document</button>
+                    <button type="button" class="btn btn-primary app-create-btn" data-toggle="modal" data-target="#finalizationDocumentModal" id="medicalModalButton"><i class="fas fa-plus" aria-hidden="true"></i> New Document</button>
                       <br><br>
                       <table id="example1" class="table table-bordered table-striped">
                       <thead>
@@ -1277,7 +1345,7 @@
                     
                     <br>
                     <h5>Biometrics</h5>
-                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#finalizationDocumentModal" id="biometricsModalButton">Upload New Document</button>
+                    <button type="button" class="btn btn-primary app-create-btn" data-toggle="modal" data-target="#finalizationDocumentModal" id="biometricsModalButton"><i class="fas fa-plus" aria-hidden="true"></i> New Document</button>
                       <br><br>
                       <table id="example1" class="table table-bordered table-striped">
                       <thead>
@@ -1308,7 +1376,7 @@
                     
                     <br>
                     <h5>Additional Documents</h5>
-                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#finalizationDocumentModal" id="additionalDocumentModalButton">Upload New Document</button>
+                    <button type="button" class="btn btn-primary app-create-btn" data-toggle="modal" data-target="#finalizationDocumentModal" id="additionalDocumentModalButton"><i class="fas fa-plus" aria-hidden="true"></i> New Document</button>
                       <br><br>
                       <table id="example1" class="table table-bordered table-striped">
                       <thead>
@@ -1337,7 +1405,7 @@
                     </table>
                       <br>
                     <h5>Lodge Visa</h5>
-                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#finalizationDocumentModal" id="lodgeVisaModalButton">Upload New Document</button>
+                    <button type="button" class="btn btn-primary app-create-btn" data-toggle="modal" data-target="#finalizationDocumentModal" id="lodgeVisaModalButton"><i class="fas fa-plus" aria-hidden="true"></i> New Document</button>
                       <br><br>
                       <table id="example1" class="table table-bordered table-striped">
                       <thead>
@@ -1366,7 +1434,7 @@
                     </table>
                     <br>
                     <h5>S56</h5>
-                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#finalizationDocumentModal" id="s56DocumentModalButton">Upload New Document</button>
+                    <button type="button" class="btn btn-primary app-create-btn" data-toggle="modal" data-target="#finalizationDocumentModal" id="s56DocumentModalButton"><i class="fas fa-plus" aria-hidden="true"></i> New Document</button>
                       <br><br>
                       <table id="example1" class="table table-bordered table-striped">
                       <thead>
@@ -1398,7 +1466,7 @@
                   
                   <div class="tab-pane fade" id="payments" role="tabpanel" aria-labelledby="payments-tab" style="overflow-x: scroll;">
                       <br>
-                      <a href="<?php echo base_url(); ?>index.php/newpayment/<?php echo $client_id; ?>" class="btn btn-primary">New Payment Entry</a>
+                      <a href="<?php echo base_url(); ?>index.php/newpayment/<?php echo $client_id; ?>" class="btn btn-primary app-create-btn"><i class="fas fa-plus" aria-hidden="true"></i> New Payment</a>
                       <br><br>
                       <table id="paymentstable" class="table table-bordered table-striped">
                         <thead>
@@ -1437,7 +1505,7 @@
                   </div>
                   
                   
-                  <div class="tab-pane fade" id="result" role="tabpanel" aria-labelledby="result-tab" style="overflow-x: scroll;">
+                  <div class="tab-pane <?php echo $active_client_page == 'result' ? 'active' : ''; ?>" id="result" role="tabpanel" aria-labelledby="result-tab" style="overflow-x: scroll;">
                     <br>
                     <?php
                         $resultCount = 0;
@@ -1594,7 +1662,7 @@
                   
                   <div class="tab-pane fade" id="visaapplication" role="tabpanel" aria-labelledby="visaapplication-tab" style="overflow-x: scroll;">
                       <br>
-                      <a href="<?php echo base_url(); ?>index.php/newvisaapplication/<?php echo $client_id; ?>" class="btn btn-primary">New Visa Application</a>
+                      <a href="<?php echo base_url(); ?>index.php/newvisaapplication/<?php echo $client_id; ?>" class="btn btn-primary app-create-btn"><i class="fas fa-plus" aria-hidden="true"></i> New Visa Application</a>
                       <br><br>
                       <table id="visaapplicationtable" class="table table-bordered table-striped">
                         <thead>
@@ -1620,7 +1688,7 @@
                             <td>".$row->new_Visa_subclass."</td>
                             <td>".$row->visa_critical_month."/".$row->visa_critical_day."/".$row->visa_critical_year."</td>
                             <td>".$row->status."</td>
-                            <td><a href='".base_url()."index.php/editvisaapplication/".$row->client_visa_id."' class='btn btn-primary btn-xs'><i class='fa fa-edit' aria-hidden='true'></i></a> ".$deletevap." <a href='".base_url()."index.php/newvisaaccount/".$row->client_visa_id."/".$client_id."' class='btn btn-primary btn-xs' target='_blank'>New Visa Account</a></td>
+                            <td><a href='".base_url()."index.php/editvisaapplication/".$row->client_visa_id."' class='btn btn-primary btn-xs'><i class='fa fa-edit' aria-hidden='true'></i></a> ".$deletevap." <a href='".base_url()."index.php/newvisaaccount/".$row->client_visa_id."/".$client_id."' class='btn btn-primary btn-xs' target='_blank'><i class='fas fa-plus' aria-hidden='true'></i> New Visa Account</a></td>
                           </tr>";
                         }
                         ?>
@@ -1638,7 +1706,7 @@
                   </div>
                   <div class="tab-pane fade" id="visaeoi" role="tabpanel" aria-labelledby="visaeoi-tab" style="overflow-x: scroll;">
                       <br>
-                      <a href="<?php echo base_url(); ?>index.php/newvisaeoi/<?php echo $client_id; ?>" class="btn btn-primary">New Visa EOI</a>
+                      <a href="<?php echo base_url(); ?>index.php/newvisaeoi/<?php echo $client_id; ?>" class="btn btn-primary app-create-btn"><i class="fas fa-plus" aria-hidden="true"></i> New Visa EOI</a>
                       <br><br>
                       <table id="visaeoitable" class="table table-bordered table-striped">
                         <thead>
@@ -1761,7 +1829,7 @@
                   </div>
                   <div class="tab-pane fade" id="scholarshipallocation" role="tabpanel" aria-labelledby="scholarshipallocation-tab" style="overflow-x: scroll;">
                       <br>
-                      <a href="<?php echo base_url(); ?>index.php/newscholarshipallocation/<?php echo $client_id; ?>" class="btn btn-primary">New Scholarship Allocation</a>
+                      <a href="<?php echo base_url(); ?>index.php/newscholarshipallocation/<?php echo $client_id; ?>" class="btn btn-primary app-create-btn"><i class="fas fa-plus" aria-hidden="true"></i> New Scholarship Allocation</a>
                       <br><br>
                       <table id="scholarshipallocationtable" class="table table-bordered table-striped">
                         <thead>
@@ -1807,7 +1875,7 @@
                   </div>
                   <div class="tab-pane fade" id="payments" role="tabpanel" aria-labelledby="payments-tab" style="overflow-x: scroll;">
                       <br>
-                      <a href="<?php echo base_url(); ?>index.php/newpayment/<?php echo $client_id; ?>" class="btn btn-primary">New Payment Entry</a>
+                      <a href="<?php echo base_url(); ?>index.php/newpayment/<?php echo $client_id; ?>" class="btn btn-primary app-create-btn"><i class="fas fa-plus" aria-hidden="true"></i> New Payment</a>
                       <br><br>
                       <table id="paymentstable" class="table table-bordered table-striped">
                         <thead>
@@ -1848,7 +1916,7 @@
                   </div>
                   <div class="tab-pane fade" id="programoptions" role="tabpanel" aria-labelledby="programoptions-tab" style="overflow-x: scroll;">
                       <br>
-                      <a href="<?php echo base_url(); ?>index.php/newprogramoption/<?php echo $client_id; ?>" class="btn btn-primary">New Program Option</a>
+                      <a href="<?php echo base_url(); ?>index.php/newprogramoption/<?php echo $client_id; ?>" class="btn btn-primary app-create-btn"><i class="fas fa-plus" aria-hidden="true"></i> New Program Option</a>
                       <br><br>
                       <table id="programoptionstable" class="table table-bordered table-striped">
                         <thead>
@@ -2203,6 +2271,55 @@
       </div>
     </div>
     
+    <!-- Add New Program Option Modal -->
+    <div class="modal fade" id="programOptionModal" tabindex="-1" role="dialog" aria-labelledby="programOptionModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="programOptionModalLabel">Upload New Program Option</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <form action="<?php echo base_url(); ?>index.php/saveprogramoptions" method="POST" enctype="multipart/form-data">
+              <div class="modal-body">
+                  <input type="hidden" name="formtype" value="new">
+                  <div class="form-group">
+                    <label for="po_client_id">Client ID</label>
+                    <input type="text" class="form-control" id="po_client_id" name="poclientid" value="<?php echo $client_id; ?>" readonly>
+                  </div>
+                  <div class="form-group">
+                    <label for="podatetime">PO Date</label>
+                    <input type="date" id="podatetime" name="podatetime" class="form-control">
+                  </div>
+                  <div class="form-group">
+                    <label for="pofile">Upload PO File</label>
+                    <input type="file" class="form-control" id="pofile" name="pofile">
+                    <p id="warningpo" style="color: red; display: none;">File size exceeds 10MB! Please select a smaller file.</p>
+                    <script>
+                    document.getElementById("pofile").addEventListener("change", function () {
+                        const file = this.files[0];
+                        const maxSize = 10 * 1024 * 1024;
+                        const warning = document.getElementById("warningpo");
+                    
+                        if (file && file.size > maxSize) {
+                            warning.style.display = "block";
+                            this.value = "";
+                        } else {
+                            warning.style.display = "none";
+                        }
+                    });
+                    </script>
+                  </div>
+              </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-primary">Save changes</button>
+          </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    
     <!-- Add New Fee Modal -->
     <div class="modal fade" id="feeModal" tabindex="-1" role="dialog" aria-labelledby="interviewModalLabel" aria-hidden="true">
       <div class="modal-dialog" role="document">
@@ -2407,46 +2524,31 @@ outlining your job title, responsibilities and duration of employment.</option>
 <script src="<?php echo $asset_url; ?>plugins/datatables-responsive/js/dataTables.responsive.min.js"></script>
 <script src="<?php echo $asset_url; ?>plugins/datatables-responsive/js/responsive.bootstrap4.min.js"></script>
 
-  <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
-  <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script>
 
 <script>
-    if(window.location.href.includes('#counselling')) {
-        setTimeout(function (){
-            document.getElementById("documents-tab").click();
-        }, 1000);
-    }
-    
-    if(window.location.href.includes('#admission')) {
-        setTimeout(function (){
-            document.getElementById("admission-tab").click();
-        }, 1000);
-    }
-    
-    if(window.location.href.includes('#visa')) {
-        setTimeout(function (){
-            document.getElementById("visa-documentation-tab").click();
-        }, 1000);
-    }
-    
-    if(window.location.href.includes('#finalization')) {
-        setTimeout(function (){
-            document.getElementById("finalization-tab").click();
-        }, 1000);
-    }
-    
-    if(window.location.href.includes('#result')) {
-        setTimeout(function (){
-            document.getElementById("result-tab").click();
-        }, 1000);
-    }
-    
-    if(window.location.href.includes('#payments')) {
-        setTimeout(function (){
-            document.getElementById("payments-tab").click();
-        }, 1000);
-    }
+    (function() {
+      var hash = window.location.hash ? window.location.hash.replace("#", "").toLowerCase() : "";
+      var hashPageMap = {
+        "clientinfo": "marketing",
+        "marketing": "marketing",
+        "documents": "counselling",
+        "counselling": "counselling",
+        "admission": "admission",
+        "visa": "file-manager",
+        "visa-documentation": "file-manager",
+        "finalization": "file-manager",
+        "file-manager": "file-manager",
+        "result": "result"
+      };
+      if (!hash || !hashPageMap[hash]) {
+        return;
+      }
+
+      var page = hashPageMap[hash];
+      var baseUrl = "<?php echo base_url(); ?>index.php/editclientinfo2/<?php echo (int) $client_id; ?>";
+      window.location.replace(baseUrl + (page === "marketing" ? "" : "/" + page));
+    })();
 </script>
 
 <script>
@@ -2480,6 +2582,313 @@ outlining your job title, responsibilities and duration of employment.</option>
       "responsive": true,
       "autoWidth": false,
     });
+    var fileManagerTable = $("#filemanagertable").DataTable({
+      "responsive": true,
+      "autoWidth": false,
+    });
+
+    var fileManagerDocumentMap = {
+      "Admission": {
+        "Offer Letter": ["Conditional Offer Letter", "Provisional Offer Letter", "Full Offer Letter", "GSR", "Financial Documents", "IELTS/PTE"],
+        "VEVO Expiry": ["VEVO Expiry"]
+      },
+      "Counselling": {
+        "Fees": ["Admin Fee", "Refusal Fee", "Processing Fee", "Tuition Fee", "Visa Application Fee", "OSCH", "Others"],
+        "Interview Form": ["Interview Form"],
+        "Program Options": ["Program Options"],
+        "Initial Requirements": ["Updated CV", "Birth Certificate", "Transcript of Records/ Form 138", "Employment Certificates", "Passport", "Diploma", "Award Certificates", "IELTS/ PTE"]
+      },
+      "Visa Documentation": {
+        "School Documents": ["Confirmation of Environment", "OSHC Certificate", "Form 956", "Form 157A", "Excel", "Medical", "Passport Stamps", "English Proficiency Test", "CV", "Employment Certificate"],
+        "Financial Evidence": ["Financial Support Statement", "Passport/ Valid ID", "Birth Certificate/ Marriage Certificate", "Family Tree", "Payslip/ ITR", "Assets"],
+        "Asset Documents": ["Land Title", "OR/CR", "Deed of Sale", "DTI Permit", "BIR Permit", "BIR Certificate of Registration", "Business Permit/ Mayor's Permit/ Barangay Clearance", "Tax Payment/ BIR"],
+        "Financial Documents": ["Bank statements", "Bank Certificate"],
+        "GSR": ["GSR", "GSR - Students", "GSR - Admin", "GSR - HO"]
+      },
+      "Finalization": {
+        "Final GSR": ["Final GSR"],
+        "Final DHA": ["Final DHA"],
+        "Medical": ["Medical"],
+        "Biometrics": ["Biometrics"],
+        "Additional Documents": ["Additional Documents"],
+        "Lodge Visa": ["Lodge Visa"],
+        "S56": ["S56"]
+      }
+    };
+
+    function uniqueFileManagerValues(values) {
+      var seen = {};
+      var result = [];
+      values.forEach(function(value) {
+        if (!seen[value]) {
+          seen[value] = true;
+          result.push(value);
+        }
+      });
+      return result.sort();
+    }
+
+    function getFileManagerDocumentTypes(purpose) {
+      var values = [];
+      Object.keys(fileManagerDocumentMap).forEach(function(purposeKey) {
+        if (!purpose || purposeKey === purpose) {
+          values = values.concat(Object.keys(fileManagerDocumentMap[purposeKey]));
+        }
+      });
+      return uniqueFileManagerValues(values);
+    }
+
+    function getFileManagerSpecifics(purpose, documentType) {
+      var values = [];
+      Object.keys(fileManagerDocumentMap).forEach(function(purposeKey) {
+        if (!purpose || purposeKey === purpose) {
+          Object.keys(fileManagerDocumentMap[purposeKey]).forEach(function(typeKey) {
+            if (!documentType || typeKey === documentType) {
+              values = values.concat(fileManagerDocumentMap[purposeKey][typeKey]);
+            }
+          });
+        }
+      });
+      return uniqueFileManagerValues(values);
+    }
+
+    function refillFileManagerSelect(select, placeholder, values, selectedValue) {
+      select.empty().append($("<option>", { value: "", text: placeholder }));
+      values.forEach(function(value) {
+        select.append($("<option>", { value: value, text: value }));
+      });
+      if (selectedValue && values.indexOf(selectedValue) !== -1) {
+        select.val(selectedValue);
+      }
+    }
+
+    function refreshFileManagerOptions() {
+      var purpose = $("#fileManagerPurposeFilter").val();
+      var selectedType = $("#fileManagerTypeFilter").val();
+      var selectedSpecific = $("#fileManagerSpecificFilter").val();
+      var documentTypes = getFileManagerDocumentTypes(purpose);
+
+      refillFileManagerSelect($("#fileManagerTypeFilter"), "All Document Types", documentTypes, selectedType);
+      selectedType = $("#fileManagerTypeFilter").val();
+      refillFileManagerSelect($("#fileManagerSpecificFilter"), "All Document Specifics", getFileManagerSpecifics(purpose, selectedType), selectedSpecific);
+    }
+
+    function setFileManagerSelection(purpose, documentType, documentSpecific) {
+      $("#fileManagerPurposeFilter").val(purpose);
+      refreshFileManagerOptions();
+      $("#fileManagerTypeFilter").val(documentType);
+      refreshFileManagerOptions();
+      $("#fileManagerSpecificFilter").val(documentSpecific || "");
+      applyFileManagerFilters();
+    }
+
+    function applyFileManagerFilters() {
+      fileManagerTable.column(1).search($("#fileManagerPurposeFilter").val());
+      fileManagerTable.column(2).search($("#fileManagerTypeFilter").val());
+      fileManagerTable.column(3).search($("#fileManagerSpecificFilter").val());
+      fileManagerTable.draw();
+    }
+
+    refreshFileManagerOptions();
+
+    $("#fileManagerPurposeFilter").on("change", function() {
+      refreshFileManagerOptions();
+      applyFileManagerFilters();
+    });
+    $("#fileManagerTypeFilter").on("change", function() {
+      refreshFileManagerOptions();
+      applyFileManagerFilters();
+    });
+    $("#fileManagerSpecificFilter").on("change", applyFileManagerFilters);
+    if ($("#file-manager").hasClass("active")) {
+      setTimeout(function() {
+        fileManagerTable.columns.adjust().responsive.recalc();
+      }, 50);
+    }
+    $("#fileManagerClearFilters").on("click", function() {
+      $("#fileManagerPurposeFilter").val("");
+      $("#fileManagerTypeFilter").val("");
+      $("#fileManagerSpecificFilter").val("");
+      refreshFileManagerOptions();
+      applyFileManagerFilters();
+    });
+
+    $(".file-manager-shortcut").on("click", function(event) {
+      event.preventDefault();
+      var shortcutSelection = {
+        purpose: $(this).data("purpose"),
+        type: $(this).data("type"),
+        specific: $(this).data("specific") || ""
+      };
+      try {
+        sessionStorage.setItem("fileManagerShortcutSelection_<?php echo (int) $client_id; ?>", JSON.stringify(shortcutSelection));
+      } catch (error) {
+        console.log(error);
+      }
+      window.location.href = "<?php echo base_url(); ?>index.php/editclientinfo2/<?php echo (int) $client_id; ?>/file-manager";
+    });
+
+    var fileManagerBaseUrl = "<?php echo base_url(); ?>";
+    var fileManagerClientId = "<?php echo (int) $client_id; ?>";
+    try {
+      var storedFileManagerSelection = sessionStorage.getItem("fileManagerShortcutSelection_" + fileManagerClientId);
+      if (storedFileManagerSelection) {
+        storedFileManagerSelection = JSON.parse(storedFileManagerSelection);
+        setFileManagerSelection(storedFileManagerSelection.purpose, storedFileManagerSelection.type, storedFileManagerSelection.specific || "");
+        sessionStorage.removeItem("fileManagerShortcutSelection_" + fileManagerClientId);
+        if ($("#file-manager").hasClass("active")) {
+          setTimeout(function() {
+            document.getElementById("fileManagerUploadFile").scrollIntoView({ behavior: "smooth", block: "center" });
+          }, 250);
+        }
+      }
+    } catch (error) {
+      console.log(error);
+    }
+
+    $(".copy-po-link").on("click", function() {
+      var link = $(this).data("link");
+      var fallbackCopy = function(value) {
+        var tempInput = $("<input>");
+        $("body").append(tempInput);
+        tempInput.val(value).select();
+        document.execCommand("copy");
+        tempInput.remove();
+        alert("PO acceptance link copied.");
+      };
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(link).then(function() {
+          alert("PO acceptance link copied.");
+        }, function() {
+          fallbackCopy(link);
+        });
+      } else {
+        fallbackCopy(link);
+      }
+    });
+
+    $(".send-po-link").on("click", function() {
+      var button = $(this);
+      var originalHtml = button.html();
+
+      button.prop("disabled", true).html('<i class="fa fa-spinner fa-spin"></i>');
+      $.ajax({
+        type: "POST",
+        url: fileManagerBaseUrl + "index.php/send_po_link_email",
+        dataType: "json",
+        data: {
+          po_link_id: button.data("link-id"),
+          client_id: button.data("client-id")
+        },
+        success: function(response) {
+          alert(response && response.message ? response.message : "Program Options link email was sent.");
+          button.prop("disabled", false).html(originalHtml);
+        },
+        error: function(xhr) {
+          var message = "Unable to send the Program Options link email.";
+          if (xhr.responseJSON && xhr.responseJSON.message) {
+            message = xhr.responseJSON.message;
+          }
+          alert(message);
+          button.prop("disabled", false).html(originalHtml);
+        }
+      });
+    });
+
+    $("#createGsdFolderNow").on("click", function() {
+      var button = $(this);
+      button.prop("disabled", true).html('<i class="fab fa-google-drive"></i> Creating folder...');
+
+      $.ajax({
+        type: "POST",
+        url: fileManagerBaseUrl + "index.php/create_student_gdrive_folder",
+        dataType: "json",
+        data: {
+          client_id: fileManagerClientId
+        },
+        success: function(response) {
+          if (!response || !response.success) {
+            alert(response && response.message ? response.message : "Unable to create the Google Drive folder.");
+            button.prop("disabled", false).html('<i class="fab fa-google-drive"></i> Create GSD folder now');
+            return;
+          }
+
+          $("#fileManagerEmptyState").hide();
+          $("#fileManagerDashboard").show();
+          fileManagerTable.columns.adjust().responsive.recalc();
+        },
+        error: function(xhr) {
+          var message = "Unable to create the Google Drive folder.";
+          if (xhr.responseJSON && xhr.responseJSON.message) {
+            message = xhr.responseJSON.message;
+          }
+          alert(message);
+          button.prop("disabled", false).html('<i class="fab fa-google-drive"></i> Create GSD folder now');
+        }
+      });
+    });
+
+    $("#fileManagerUploadVisa").on("click", function() {
+      var uploadInput = document.getElementById("fileManagerUploadFile");
+      var selectedFile = uploadInput.files && uploadInput.files.length ? uploadInput.files[0] : null;
+      var documentSpecific = $("#fileManagerSpecificFilter").val();
+      var documentType = $("#fileManagerTypeFilter").val();
+      var purpose = $("#fileManagerPurposeFilter").val();
+
+      if (!purpose) {
+        alert("Please select a purpose before uploading.");
+        return;
+      }
+      if (!documentType) {
+        alert("Please select a document type before uploading.");
+        return;
+      }
+      if (!documentSpecific) {
+        alert("Please select a document specific before uploading.");
+        return;
+      }
+      if (!selectedFile) {
+        alert("Please choose a file to upload.");
+        return;
+      }
+
+      var button = $(this);
+      var formData = new FormData();
+      formData.append("client_id", fileManagerClientId);
+      formData.append("document_purpose", purpose);
+      formData.append("document_type", documentType);
+      formData.append("document_specific", documentSpecific);
+      formData.append("document_file", selectedFile);
+
+      button.prop("disabled", true).html('<i class="fas fa-cloud-upload-alt"></i> Uploading...');
+
+      $.ajax({
+        type: "POST",
+        url: fileManagerBaseUrl + "index.php/upload_student_gdrive_file",
+        data: formData,
+        dataType: "json",
+        processData: false,
+        contentType: false,
+        success: function(response) {
+          if (!response || !response.success) {
+            alert(response && response.message ? response.message : "Unable to upload the file to Google Drive.");
+            button.prop("disabled", false).html('<i class="fas fa-cloud-upload-alt"></i> Upload File');
+            return;
+          }
+
+          window.location.href = fileManagerBaseUrl + "index.php/editclientinfo2/" + fileManagerClientId + "/file-manager";
+        },
+        error: function(xhr) {
+          var message = "Unable to upload the file to Google Drive.";
+          if (xhr.responseJSON && xhr.responseJSON.message) {
+            message = xhr.responseJSON.message;
+          }
+          alert(message);
+          button.prop("disabled", false).html('<i class="fas fa-cloud-upload-alt"></i> Upload File');
+        }
+      });
+    });
 
     $("#programoptionstable").DataTable({
       "responsive": true,
@@ -2496,8 +2905,6 @@ outlining your job title, responsibilities and duration of employment.</option>
   function ResetFile() {
     document.getElementById("finalizationDocumentForm").reset();
   }
-
-  document.getElementsByClassName("customerinfotabs")[0].click();
 
   function validateData(evt) {
     if (document.getElementById("birthdate").value == "") {

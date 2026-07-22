@@ -152,8 +152,50 @@
               <?php
                     }
               
+                    } elseif($type == "programoption") {
+              
+                    foreach ($programoption as $row) {
+                  ?>
+              
+              <form action="<?php echo base_url(); ?>index.php/saveprogramoptions" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="poid" value="<?php echo $row->id; ?>">
+                <input type="hidden" name="editfilelink" value="<?php echo $row->po_file; ?>">
+                <input type="hidden" name="editfileclientid" value="<?php echo $client; ?>">
+                <input type="hidden" name="formtype" value="edit">
+                <div class="form-group">
+                    <label for="documentype">PO Date</label>
+                    <input type="date" name="podatetime" class="form-control" value="<?php echo $row->po_date; ?>">
+                </div>
+                <div class="form-group">
+                    <label for="documentype">PO Status</label>
+                    <input type="text" name="postatus" class="form-control" value="<?php echo $row->po_status; ?>">
+                </div>
+                <div class="form-group">
+                    <label for="documentfile">Upload PO File</label>
+                    <input type="file" class="form-control" id="pofile" name="pofile">
+                    <p id="warningpo" style="color: red; display: none;">File size exceeds 10MB! Please select a smaller file.</p>
+                </div>
+                <button type="submit" class="btn btn-primary">Submit</button>
+              </form>
+              <script>
+                document.getElementById("pofile").addEventListener("change", function () {
+                    const file = this.files[0];
+                    const maxSize = 10 * 1024 * 1024;
+                    const warning = document.getElementById("warningpo");
+                
+                    if (file && file.size > maxSize) {
+                        warning.style.display = "block";
+                        this.value = "";
+                    } else {
+                        warning.style.display = "none";
                     }
-                    elseif($type == "interviews") {
+                });
+                </script>
+              
+              <?php
+                    }
+              
+                    } elseif($type == "interviews") {
               
                     foreach ($interviews as $row) {
                   ?>

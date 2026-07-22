@@ -1,0 +1,211 @@
+.table,
+table.table {
+  background: #ffffff;
+  border-color: #dbe4ee !important;
+  color: #263746;
+  font-size: 13px;
+  margin-bottom: 0;
+}
+
+.table-bordered {
+  border: 1px solid #dbe4ee !important;
+}
+
+.table thead th,
+table.dataTable thead th {
+  background: #f4f8fb;
+  border-bottom: 1px solid #cfdbe7 !important;
+  border-color: #dbe4ee !important;
+  color: #1f2d3d;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0;
+  padding: 12px 10px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.table tbody td,
+.table tbody th,
+table.dataTable tbody td,
+table.dataTable tbody th {
+  border-color: #e3ebf3 !important;
+  padding: 12px 10px;
+  vertical-align: top;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+  background-color: #ffffff;
+}
+
+.table-striped tbody tr:nth-of-type(even) {
+  background-color: #f8fafc;
+}
+
+.table-hover tbody tr:hover,
+.table tbody tr:hover,
+table.dataTable tbody tr:hover {
+  background-color: #eef7ff !important;
+}
+
+.table tfoot th,
+table.dataTable tfoot th {
+  background: #f4f8fb;
+  border-color: #dbe4ee !important;
+  color: #1f2d3d;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 11px 10px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.table td:empty::before {
+  color: #9aa8b5;
+  content: "[empty]";
+}
+
+.table .btn,
+table.dataTable .btn {
+  border-radius: 6px;
+  box-shadow: none;
+  font-weight: 700;
+}
+
+.table .btn-xs,
+table.dataTable .btn-xs {
+  align-items: center;
+  display: inline-flex;
+  height: 31px;
+  justify-content: center;
+  margin: 2px;
+  min-width: 31px;
+  padding: 6px 8px;
+}
+
+.dataTables_wrapper {
+  background: #ffffff;
+  border: 1px solid #dbe4ee;
+  border-radius: 8px;
+  overflow-x: auto;
+  overflow-y: visible;
+  padding: 14px;
+}
+
+.dataTables_wrapper .row:first-child {
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.dataTables_wrapper .row:last-child {
+  align-items: center;
+  border-top: 1px solid #edf2f7;
+  margin-top: 12px;
+  padding-top: 12px;
+}
+
+.dataTables_wrapper .dataTables_length label,
+.dataTables_wrapper .dataTables_filter label,
+.dataTables_wrapper .dataTables_info {
+  color: #52616f;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.dataTables_wrapper .dataTables_length select,
+.dataTables_wrapper .dataTables_filter input {
+  border: 1px solid #cfd8e3;
+  border-radius: 6px;
+  color: #263746;
+  min-height: 34px;
+}
+
+.dataTables_wrapper .dataTables_filter input {
+  margin-left: 8px;
+  min-width: 190px;
+  padding: 6px 10px;
+}
+
+.dataTables_wrapper .dataTables_length select {
+  margin: 0 6px;
+  padding: 4px 24px 4px 8px;
+}
+
+.dataTables_wrapper .table {
+  border-left: 0 !important;
+  border-right: 0 !important;
+  width: 100% !important;
+}
+
+.dataTables_wrapper .page-link {
+  border-color: #dbe4ee;
+  color: #007bff;
+  font-weight: 700;
+  min-width: 34px;
+  text-align: center;
+}
+
+.dataTables_wrapper .page-item.active .page-link {
+  background: #007bff;
+  border-color: #007bff;
+  color: #ffffff;
+}
+
+.dataTables_wrapper .page-item.disabled .page-link {
+  color: #9aa8b5;
+}
+
+.card .table,
+.modal .table {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.card-body > .table:not(.dataTable),
+.modal-body > .table:not(.dataTable) {
+  border: 1px solid #dbe4ee;
+}
+
+.app-create-toolbar {
+  align-items: center;
+  display: flex;
+  margin-bottom: 14px;
+  min-height: 38px;
+}
+
+.card-header.app-create-toolbar {
+  background: transparent;
+  border-bottom: 0;
+  padding: 0 0 14px;
+}
+
+.app-create-btn {
+  align-items: center;
+  display: inline-flex;
+  font-weight: 700;
+  gap: 7px;
+  min-height: 38px;
+  padding: 8px 13px;
+  white-space: nowrap;
+}
+
+.app-create-btn i {
+  font-size: 13px;
+}
+
+@media (max-width: 767.98px) {
+  .dataTables_wrapper {
+    padding: 10px;
+  }
+
+  .dataTables_wrapper .dataTables_filter,
+  .dataTables_wrapper .dataTables_length {
+    text-align: left;
+  }
+
+  .dataTables_wrapper .dataTables_filter input {
+    margin-left: 0;
+    margin-top: 6px;
+    width: 100%;
+  }
+}

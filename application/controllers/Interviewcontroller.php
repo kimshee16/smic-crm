@@ -48,7 +48,7 @@ class Interviewcontroller extends CI_Controller {
             		$this->db->insert('interviews', $data);
                 }
                 
-                redirect(base_url()."index.php/editclientinfo2/".$this->input->post('interviewclientid')."#counselling");
+                redirect(base_url()."index.php/editclientinfo2/".$this->input->post('interviewclientid')."/counselling");
                     
             } else {
                 
@@ -85,7 +85,7 @@ class Interviewcontroller extends CI_Controller {
             		
                 }
                 
-                redirect(base_url()."index.php/editclientinfo2/".$this->input->post('editfileclientid')."#counselling");  
+                redirect(base_url()."index.php/editclientinfo2/".$this->input->post('editfileclientid')."/counselling");  
                 
             }
             

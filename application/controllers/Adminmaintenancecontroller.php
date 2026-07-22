@@ -9,8 +9,33 @@ class Adminmaintenancecontroller extends CI_Controller {
 		$this->load->helper('form');
 	}
 
-	public function index()
+	public function index($active_admin_page = 'offices')
 	{
+		$admin_page_aliases = array(
+			'offices' => 'offices',
+			'office' => 'offices',
+			'officers' => 'officers',
+			'officer' => 'officers',
+			'officer-assignment' => 'officer-assignment',
+			'officerassignment' => 'officer-assignment',
+			'assignments' => 'officer-assignment',
+			'region' => 'region',
+			'regions' => 'region',
+			'events' => 'events',
+			'event' => 'events',
+			'privileges' => 'privileges',
+			'priviledges' => 'privileges',
+			'privilege' => 'privileges',
+			'priviledge' => 'privileges',
+			'email-contents' => 'email-contents',
+			'emailcontents' => 'email-contents',
+			'email-content' => 'email-contents',
+			'parameters' => 'parameters',
+			'parameter' => 'parameters'
+		);
+		$active_admin_page = strtolower(trim($active_admin_page));
+		$active_admin_page = isset($admin_page_aliases[$active_admin_page]) ? $admin_page_aliases[$active_admin_page] : 'offices';
+
 		$sql1 = "SELECT * FROM region";
 	    $query1 = $this->db->query($sql1);
 	    $region = $query1->result();
@@ -69,9 +94,33 @@ class Adminmaintenancecontroller extends CI_Controller {
 		        $data['privilege_manage_studentapps'] = $row3->privilege_manage_studentapps;
 		}
 
+		$allowed_admin_pages = array();
+		if ($data['privilege_manage_offices'] == "1") {
+			$allowed_admin_pages[] = 'offices';
+		}
+		if ($data['privilege_manage_officers'] == "1") {
+			$allowed_admin_pages[] = 'officers';
+			$allowed_admin_pages[] = 'officer-assignment';
+			$allowed_admin_pages[] = 'region';
+		}
+		if ($data['privilege_manage_events'] == "1") {
+			$allowed_admin_pages[] = 'events';
+		}
+		if ($data['privilege_manage_privilege'] == "1") {
+			$allowed_admin_pages[] = 'privileges';
+		}
+		if ($data['privilege_manage_parameters'] == "1") {
+			$allowed_admin_pages[] = 'email-contents';
+			$allowed_admin_pages[] = 'parameters';
+		}
+		if (count($allowed_admin_pages) > 0 && !in_array($active_admin_page, $allowed_admin_pages)) {
+			$active_admin_page = $allowed_admin_pages[0];
+		}
+
         $asset_url = base_url()."assets/";
 		$data['title'] = "Admin Maintenance";
 		$data['asset_url'] = $asset_url;
+		$data['active_admin_page'] = $active_admin_page;
 		
 		$data['region'] = $region;
 		$data['officer'] = $officer;
@@ -194,7 +243,7 @@ class Adminmaintenancecontroller extends CI_Controller {
 					'offices_notes' => $this->input->post('offices_notes')
 				);
 		$this->db->insert('offices', $data);
-		redirect('adminmaintenance');
+		redirect('adminmaintenance/offices');
 	}
 	
 	public function editoffice($id)
@@ -278,14 +327,14 @@ class Adminmaintenancecontroller extends CI_Controller {
 		$this->db->set('offices_notes', $this->input->post('offices_notes'));
 		$this->db->where('offices_id', $this->input->post('offices_id'));
 		$this->db->update('offices');
-		redirect('adminmaintenance');
+		redirect('adminmaintenance/offices');
 	}
     
     public function deleteoffice($id)
 	{
 		$this->db->where('offices_id', $id);
 		$this->db->delete('offices');
-		redirect(base_url()."index.php/adminmaintenance");
+		redirect(base_url()."index.php/adminmaintenance/offices");
 	}
     
 	public function newregion()
@@ -348,7 +397,7 @@ class Adminmaintenancecontroller extends CI_Controller {
 					'region_description' => $this->input->post('regiondescription')
 				);
 		$this->db->insert('region', $data);
-		redirect('adminmaintenance');
+		redirect('adminmaintenance/region');
 	}
 
 	public function newofficer()
@@ -427,39 +476,23 @@ class Adminmaintenancecontroller extends CI_Controller {
 					'region_description' => $this->input->post('regiondescription')
 				);
 		$this->db->insert('region', $data);
-		redirect('adminmaintenance');
+		redirect('adminmaintenance/officers');
 	}
 
 	public function do_upload()
         {
                 
-                $config['upload_path']          = './assets/images/';
-                $config['allowed_types']        = 'gif|jpg|png';
-                $config['max_size']             = 100;
-                $config['max_width']            = 1024;
-                $config['max_height']           = 768;
+                $config['upload_path']          = FCPATH.'assets/images/';
+                $config['allowed_types']        = 'gif|jpg|jpeg|png|webp';
+                $config['remove_spaces']        = TRUE;
 
                 $this->load->library('upload', $config);
 
                 if($this->input->post('indicator') == "add") {
                 	if ( ! $this->upload->do_upload('userfile'))
 	                {
-	                    $data = array(
-									'officer_login_name' => $this->input->post('loginname'),
-				                	'officer_name' => $this->input->post('name'),
-				                	'officer_last_logged_date' => date("Y-m-d"),
-				                	'officer_password' => $this->input->post('password'),
-				                	'officer_role' => $this->input->post('roletext'),
-				                	'officer_status' => 'active',
-				                	'officer_photo' => '',
-				                	'officer_office_id' => $this->input->post('office'),
-				                	'email' => $this->input->post('email'),
-				                	'officer_region' => $this->input->post('region'),
-				                	'user_role_id' => $this->input->post('role')
-								);
-
-						$this->db->insert('officer', $data);
-	                    redirect('adminmaintenance');
+	                    $this->session->set_flashdata('error', strip_tags($this->upload->display_errors()));
+	                    redirect('newofficer');
 	                }
 	                else
 	                {
@@ -481,23 +514,39 @@ class Adminmaintenancecontroller extends CI_Controller {
 								);
 
 						$this->db->insert('officer', $data);
-	                    redirect('adminmaintenance');
+	                    redirect('adminmaintenance/officers');
 	                }
                 } else {
-					if ( ! $this->upload->do_upload('userfile'))
+					$officer_id = $this->input->post('officerid');
+					$current_photo = $this->input->post('currentphoto');
+					$has_new_photo = isset($_FILES['userfile']) && $_FILES['userfile']['name'] != "";
+					if (!$has_new_photo)
 	                {
 						$this->db->set('officer_login_name', $this->input->post('loginname'));
 						$this->db->set('officer_name', $this->input->post('name'));
 						$this->db->set('officer_password', $this->input->post('password'));
-						$this->db->set('officer_role', $this->input->post('role'));
-						$this->db->set('officer_photo', '');
+						$this->db->set('officer_role', $this->input->post('roletext'));
+						$this->db->set('officer_photo', $current_photo);
 						$this->db->set('officer_office_id', $this->input->post('office'));
 						$this->db->set('email', $this->input->post('email'));
 						$this->db->set('officer_region', $this->input->post('region'));
-						$this->db->where('officer_id', $this->input->post('officerid'));
+						$this->db->set('user_role_id', $this->input->post('role'));
+						$this->db->where('officer_id', $officer_id);
 						$this->db->update('officer');
 
-	                    redirect('adminmaintenance');
+						if($this->session->officer_id == $officer_id) {
+							$this->session->set_userdata(array(
+								'officer_name' => $this->input->post('name'),
+								'officer_photo' => $current_photo
+							));
+						}
+
+	                    redirect('adminmaintenance/officers');
+	                }
+	                elseif ( ! $this->upload->do_upload('userfile'))
+	                {
+	                    $this->session->set_flashdata('error', strip_tags($this->upload->display_errors()));
+	                    redirect('editofficer/'.$officer_id);
 	                }
 	                else
 	                {
@@ -507,18 +556,65 @@ class Adminmaintenancecontroller extends CI_Controller {
 	                	$this->db->set('officer_login_name', $this->input->post('loginname'));
 						$this->db->set('officer_name', $this->input->post('name'));
 						$this->db->set('officer_password', $this->input->post('password'));
-						$this->db->set('officer_role', $this->input->post('role'));
+						$this->db->set('officer_role', $this->input->post('roletext'));
 						$this->db->set('officer_photo', $file_name);
 						$this->db->set('officer_office_id', $this->input->post('office'));
 						$this->db->set('email', $this->input->post('email'));
 						$this->db->set('officer_region', $this->input->post('region'));
-						$this->db->where('officer_id', $this->input->post('officerid'));
+						$this->db->set('user_role_id', $this->input->post('role'));
+						$this->db->where('officer_id', $officer_id);
 						$this->db->update('officer');
+
+						if($this->session->officer_id == $officer_id) {
+							$this->session->set_userdata(array(
+								'officer_name' => $this->input->post('name'),
+								'officer_photo' => $file_name
+							));
+						}
 						
-	                    redirect('adminmaintenance');
+	                    redirect('adminmaintenance/officers');
 	                }
                 }
         }
+
+	public function updateofficerphoto()
+	{
+		$redirect_url = $this->input->server('HTTP_REFERER') ? $this->input->server('HTTP_REFERER') : base_url().'index.php/dashboard';
+
+		if (!isset($this->session->officer_id) || $this->session->officer_id == "") {
+			redirect(base_url()."?error3=1");
+		}
+
+		if (!isset($_FILES['officer_photo']) || $_FILES['officer_photo']['name'] == "") {
+			$this->session->set_flashdata('error', 'Please choose a photo to upload.');
+			redirect($redirect_url);
+		}
+
+		$config['upload_path'] = FCPATH.'assets/images/';
+		$config['allowed_types'] = 'gif|jpg|jpeg|png|webp';
+		$config['max_size'] = 4096;
+		$config['remove_spaces'] = TRUE;
+		$config['encrypt_name'] = TRUE;
+
+		$this->load->library('upload', $config);
+
+		if (!$this->upload->do_upload('officer_photo')) {
+			$this->session->set_flashdata('error', strip_tags($this->upload->display_errors()));
+			redirect($redirect_url);
+		}
+
+		$upload_data = $this->upload->data();
+		$file_name = $upload_data['file_name'];
+
+		$this->db->set('officer_photo', $file_name);
+		$this->db->where('officer_id', $this->session->officer_id);
+		$this->db->update('officer');
+
+		$this->session->set_userdata(array('officer_photo' => $file_name));
+		$this->session->set_flashdata('success', 'Profile photo updated.');
+
+		redirect($redirect_url);
+	}
 
     public function newassignment()
 	{
@@ -593,7 +689,7 @@ class Adminmaintenancecontroller extends CI_Controller {
 					'bactive' => 1
 				);
 		$this->db->insert('officerassignment', $data);
-		redirect('adminmaintenance');
+		redirect('adminmaintenance/officer-assignment');
 	}
 
 	public function editassignment($oaid)
@@ -677,7 +773,7 @@ class Adminmaintenancecontroller extends CI_Controller {
 		$this->db->set('remailbody', $this->input->post('remailbody'));
 		$this->db->set('remailfooter', $this->input->post('remailfooter'));
 		$this->db->update('emailcontents');
-		redirect('adminmaintenance');
+		redirect('adminmaintenance/email-contents');
 	}
 
 	public function saveparameters()
@@ -696,7 +792,7 @@ class Adminmaintenancecontroller extends CI_Controller {
 		$this->db->set('abn', $this->input->post('abn'));
 		$this->db->set('redeemable_point', $this->input->post('redeemable_point'));
 		$this->db->update('parameters');
-		redirect('adminmaintenance');
+		redirect('adminmaintenance/parameters');
 	}
 
 	public function updatepriviledge()
@@ -863,7 +959,7 @@ class Adminmaintenancecontroller extends CI_Controller {
 		$this->db->set('region_description', $this->input->post('regiondescription'));
 		$this->db->where('region_id', $this->input->post('regionid'));
 		$this->db->update('region');
-		redirect('adminmaintenance');
+		redirect('adminmaintenance/region');
 	}
 
 	public function updateassignment()
@@ -873,7 +969,7 @@ class Adminmaintenancecontroller extends CI_Controller {
 		$this->db->set('city', $this->input->post('city'));
 		$this->db->where('oaid', $this->input->post('oaid'));
 		$this->db->update('officerassignment');
-		redirect('adminmaintenance');
+		redirect('adminmaintenance/officer-assignment');
 	}
 
 	public function deactivateofficer($officer_id)
@@ -882,7 +978,7 @@ class Adminmaintenancecontroller extends CI_Controller {
 		$this->db->where('officer_id', $officer_id);
 		$this->db->update('officer');
 		//echo json_encode("Successfully done reset!");
-		redirect(base_url()."index.php/adminmaintenance");
+		redirect(base_url()."index.php/adminmaintenance/officers");
 	}
 
 	public function deactivateassignment($assignment_id)
@@ -891,7 +987,7 @@ class Adminmaintenancecontroller extends CI_Controller {
 		$this->db->where('oaid', $assignment_id);
 		$this->db->update('officerassignment');
 		//echo json_encode("Successfully done reset!");
-		redirect(base_url()."index.php/adminmaintenance");
+		redirect(base_url()."index.php/adminmaintenance/officer-assignment");
 	}
 
 	public function deleteregion($region_id)
@@ -899,7 +995,7 @@ class Adminmaintenancecontroller extends CI_Controller {
 		$this->db->where('region_id', $region_id);
 		$this->db->delete('region');
 		//echo json_encode("Successfully done reset!");
-		redirect(base_url()."index.php/adminmaintenance");
+		redirect(base_url()."index.php/adminmaintenance/region");
 	}
 
 	public function deleteevent($event_id)
@@ -907,7 +1003,7 @@ class Adminmaintenancecontroller extends CI_Controller {
 		$this->db->where('event_id', $event_id);
 		$this->db->delete('events');
 		//echo json_encode("Successfully done reset!");
-		redirect(base_url()."index.php/adminmaintenance");
+		redirect(base_url()."index.php/adminmaintenance/events");
 	}
 
 }

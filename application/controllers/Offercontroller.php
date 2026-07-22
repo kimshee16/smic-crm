@@ -51,7 +51,7 @@ class Offercontroller extends CI_Controller {
             		$this->db->insert('admissionofferletter', $data);
                 }
                 
-                redirect(base_url()."index.php/editclientinfo2/".$this->input->post('offerletterclientid')."#admission");  
+                redirect(base_url()."index.php/editclientinfo2/".$this->input->post('offerletterclientid')."/admission");  
                 
             } else {
                 
@@ -88,7 +88,7 @@ class Offercontroller extends CI_Controller {
                 
             }
             
-            redirect(base_url()."index.php/editclientinfo2/".$this->input->post('editfileclientid')."#admission");    
+            redirect(base_url()."index.php/editclientinfo2/".$this->input->post('editfileclientid')."/admission");    
         }
 	
 }

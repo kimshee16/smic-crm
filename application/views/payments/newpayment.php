@@ -21,17 +21,146 @@
       </div><!-- /.container-fluid -->
     </section>
     <input type="hidden" id="baseurl" value="<?php echo base_url(); ?>">
+    <style>
+      .payment-entry-card {
+        border: 1px solid #d8e4f0;
+        border-radius: 8px;
+        box-shadow: 0 1px 4px rgba(13, 34, 56, .08);
+      }
+
+      .payment-entry-form {
+        color: #0d2238;
+      }
+
+      .payment-entry-form center {
+        display: block;
+        margin: 28px 0 14px;
+        text-align: left;
+      }
+
+      .payment-entry-form center:first-of-type {
+        margin-top: 0;
+      }
+
+      .payment-entry-form h2 {
+        border-bottom: 1px solid #d8e4f0;
+        font-size: 18px;
+        font-weight: 800;
+        letter-spacing: 0;
+        margin: 0;
+        padding-bottom: 10px;
+        text-transform: none;
+      }
+
+      .payment-entry-form label {
+        color: #20364d;
+        font-size: 12px;
+        font-weight: 700;
+        margin-bottom: 6px;
+      }
+
+      .payment-entry-form .form-control,
+      .payment-entry-form .select2-container--default .select2-selection--single {
+        border-color: #cfdce9;
+        border-radius: 6px;
+        min-height: 38px;
+      }
+
+      .payment-entry-form .mb-3 {
+        margin-bottom: 14px !important;
+      }
+
+      .payment-lines-toolbar {
+        align-items: center;
+        display: flex;
+        gap: 8px;
+        justify-content: space-between;
+        margin: 18px 0 10px;
+      }
+
+      .payment-lines-actions {
+        display: flex;
+        gap: 8px;
+      }
+
+      .payment-lines-toolbar h2 {
+        border: 0;
+        font-size: 16px;
+        margin: 0;
+        padding: 0;
+      }
+
+      .payment-lines-table {
+        border: 1px solid #d8e4f0;
+        border-radius: 8px;
+        overflow: hidden;
+      }
+
+      .payment-lines-table table {
+        margin-bottom: 0;
+      }
+
+      .payment-lines-table thead th {
+        background: #f1f6fb;
+        border-bottom: 1px solid #d8e4f0;
+        color: #0d2238;
+        font-size: 12px;
+        text-transform: uppercase;
+      }
+
+      .payment-lines-table td {
+        vertical-align: middle;
+      }
+
+      .payment-lines-table input {
+        width: 100%;
+      }
+
+      .payment-summary {
+        background: #f7fbff;
+        border: 1px solid #d8e4f0;
+        border-radius: 8px;
+        margin-top: 12px;
+        padding: 14px;
+      }
+
+      .payment-summary .form-control[readonly] {
+        background: #fff;
+        font-weight: 700;
+      }
+
+      .payment-submit-bar {
+        align-items: center;
+        border-top: 1px solid #d8e4f0;
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 28px;
+        padding-top: 18px;
+      }
+
+      @media (max-width: 767px) {
+        .payment-lines-toolbar,
+        .payment-submit-bar {
+          align-items: stretch;
+          flex-direction: column;
+        }
+
+        .payment-lines-actions {
+          flex-direction: column;
+        }
+      }
+    </style>
     <!-- Main content -->
     <section class="content">
       <div class="row">
         <div class="col-12">
     
-          <div class="card">
+          <div class="card payment-entry-card">
             <!-- /.card-header -->
             <div class="card-body">
               
-              <form action="<?php echo base_url(); ?>index.php/savenewpayment" method="post" enctype="multipart/form-data">
-                <center><h2>TRANSACTION INFORMATION</h2></center>
+              <form class="payment-entry-form" action="<?php echo base_url(); ?>index.php/savenewpayment" method="post" enctype="multipart/form-data">
+                <center><h2>Transaction Information</h2></center>
                 <input type="hidden" name="savetype" value="new">
                 <div class="row">
                     <div class="col-6">
@@ -150,51 +279,59 @@
                     <!--    </div>-->
                     <!--</div>-->
                 </div>
-                
-                <br><br>
-                <button class="btn btn-primary btn-xs" type="button" id="addrow">Add row</button> <button class="btn btn-success btn-xs" type="button" id="addrow" onclick="computeTotalAmount();">Compute total</button>
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th style="width: 50%">Description</th>
-                            <th style="width: 10%">Quantity</th>
-                            <th style="width: 10%">Unit Price</th>
-                            <th style="width: 20%">Amount</th>
-                            <th style="width: 5%"></th>
-                        </tr>
-                    </thead>
-                    <tbody id="pricetBody"></tbody>
-                </table>
+                <div class="payment-lines-toolbar">
+                    <h2>Line Items</h2>
+                    <div class="payment-lines-actions">
+                        <button class="btn btn-primary btn-sm" type="button" id="addrow"><i class="fas fa-plus" aria-hidden="true"></i> Add row</button>
+                        <button class="btn btn-success btn-sm" type="button" id="compute-total" onclick="computeTotalAmount();"><i class="fas fa-calculator" aria-hidden="true"></i> Compute total</button>
+                    </div>
+                </div>
+                <div class="payment-lines-table">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th style="width: 50%">Description</th>
+                                <th style="width: 12%">Quantity</th>
+                                <th style="width: 14%">Unit Price</th>
+                                <th style="width: 17%">Amount</th>
+                                <th style="width: 7%"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="pricetBody"></tbody>
+                    </table>
+                </div>
+                <div class="payment-summary">
                 <div class="row">
-                    <div class="col-6"></div>
-                    <div class="col-1">
+                    <div class="col-lg-6"></div>
+                    <div class="col-lg-2 col-md-3">
                         <div class="mb-3">
                           <label for="amount" class="form-label">GST/Tax Amount</label>
                           <input type="text" class="form-control" name="gstamount" placeholder="Total Amount" id="gstamount" readonly>
                         </div>
                     </div>
-                    <div class="col-1">
+                    <div class="col-lg-2 col-md-3">
                         <div class="mb-3">
                           <label for="amount" class="form-label">Discount Amount</label>
                           <input type="text" class="form-control" name="discountamount" placeholder="Discount Amount" id="discountamount" readonly>
                         </div>
                     </div>
-                    <div class="col-1">
+                    <div class="col-lg-2 col-md-3">
                         <div class="mb-3">
                           <label for="amount" class="form-label">Penalty Amount</label>
                           <input type="text" class="form-control" name="penaltyamount" placeholder="Penalty Amount" id="penaltyamount" readonly>
                         </div>
                     </div>
-                    <div class="col-3">
+                    <div class="col-lg-4 col-md-3 ml-auto">
                         <div class="mb-3">
                           <label for="amount" class="form-label">Grand Amount</label>
                           <input type="text" class="form-control" name="totalamount" placeholder="Total Amount" id="totalamount" readonly>
                         </div> 
                     </div>
                 </div>
+                </div>
                 
                 <br><br>
-                <center><h2>COMPANY INFORMATION</h2></center>
+                <center><h2>Company Information</h2></center>
                 <div class="row">
                     <div class="col-6">
                         <div class="mb-3">
@@ -284,7 +421,7 @@
                 </div>
                 
                 <br><br>
-                <center><h2>PAYOR INFORMATION</h2></center>
+                <center><h2>Payer Information</h2></center>
                 <div class="row">
                     <div class="col-6">
                         <div class="mb-3">
@@ -294,7 +431,7 @@
                     </div>
                     <div class="col-6">
                         <div class="mb-3">
-                          <label for="amount" class="form-label">Client ID</label>
+                          <label for="amount" class="form-label">Client</label>
                           <input type="hidden" name="formtype" value="new">
                           <select class="form-control select2" name="payee" id="payee" style="width: 100% !important;">
                                 <?php
@@ -398,8 +535,10 @@
                 <!--  <input type="file" class="form-control" name="paymentattachment">-->
                 <!--</div>-->
                 
-                <br><br>
-                <button type="submit" class="btn btn-primary">Submit</button>
+                <div class="payment-submit-bar">
+                    <a href="<?php echo base_url(); ?>index.php/payments" class="btn btn-outline-secondary mr-2">Cancel</a>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save" aria-hidden="true"></i> Submit</button>
+                </div>
                 
                 
               </form>
@@ -468,18 +607,21 @@
 </script>
 <script>
     document.getElementById("addrow").onclick = function() {
+        addPaymentRow();
+    }
+
+    function addPaymentRow() {
         var newTR = document.createElement("tr");
         newTR.setAttribute('class','detailsrows');
         var dynahtml = `
-                <td><input type='text' name='detaildescription[]'></td>
-                <td><input type='number' name='detailquantity[]'></td>
-                <td><input type='number' name='detailunitprice[]' ></td>
-                <td><input type='text' name='detailamount' class='amounts' readonly></td>
-                <td><button class='btn btn-danger btn-xs' onclick='parentNode.parentNode.remove();'>Remove</button></td>
+                <td><input type='text' class='form-control form-control-sm payment-line-input' name='detaildescription[]'></td>
+                <td><input type='number' class='form-control form-control-sm payment-line-input' name='detailquantity[]' min='0' step='0.01'></td>
+                <td><input type='number' class='form-control form-control-sm payment-line-input' name='detailunitprice[]' min='0' step='0.01'></td>
+                <td><input type='text' class='form-control form-control-sm amounts' name='detailamount' readonly></td>
+                <td><button type='button' class='btn btn-danger btn-xs remove-line' onclick='parentNode.parentNode.remove(); computeTotalAmount();'><i class='fas fa-trash' aria-hidden='true'></i></button></td>
         `;
         newTR.innerHTML = dynahtml;
         document.getElementById("pricetBody").appendChild(newTR);
-        // applyGSTfromAdd();
     }
     
     // function applyGST(element) {
@@ -491,7 +633,9 @@
     
     function applyGSTfromAdd() {
         var fields = document.getElementsByClassName('gstfields');
-        fields[fields.length-1].value = fields[0].value;
+        if (fields.length > 1) {
+            fields[fields.length-1].value = fields[0].value;
+        }
     }
     
     function computeTotalAmount() {
@@ -501,7 +645,7 @@
         for(var i = 0; i < detailsrows.length; i++) {
             if(detailsrows[i].children[1].children[0].value != '' && detailsrows[i].children[2].children[0].value != '') {
                 const baseAmount = (parseFloat(detailsrows[i].children[1].children[0].value) * parseFloat(detailsrows[i].children[2].children[0].value));
-                detailsrows[i].children[3].children[0].value = baseAmount;
+                detailsrows[i].children[3].children[0].value = baseAmount.toFixed(2);
                 
                 // const gstAmount = (baseAmount * gstRate) / 100;
                 // const discountAmount = (baseAmount * discountRate) / 100;
@@ -525,9 +669,9 @@
             }
         }
         
-        const gstRate = parseFloat(document.getElementById("taxpercent").value);
-        const discountRate = parseFloat(document.getElementById("discountpercent").value);
-        const penaltyRate = parseFloat(document.getElementById("penaltypercent").value);
+        const gstRate = parseFloat(document.getElementById("taxpercent").value) || 0;
+        const discountRate = parseFloat(document.getElementById("discountpercent").value) || 0;
+        const penaltyRate = parseFloat(document.getElementById("penaltypercent").value) || 0;
         
         const gstAmount = (total * gstRate) / 100;
         const discountAmount = (total * discountRate) / 100;
@@ -539,6 +683,20 @@
         document.getElementById("gstamount").value = gstAmount.toFixed(2);
         document.getElementById("discountamount").value = discountAmount.toFixed(2);
         document.getElementById("penaltyamount").value = penaltyAmount.toFixed(2);
+    }
+
+    document.getElementById("pricetBody").addEventListener("input", function(event) {
+        if (event.target.name == "detailquantity[]" || event.target.name == "detailunitprice[]") {
+            computeTotalAmount();
+        }
+    });
+
+    ["taxpercent", "discountpercent", "penaltypercent"].forEach(function(id) {
+        document.getElementById(id).addEventListener("input", computeTotalAmount);
+    });
+
+    if (document.getElementsByClassName("detailsrows").length == 0) {
+        addPaymentRow();
     }
     
     getClient();

@@ -155,7 +155,7 @@ class Eventscontroller extends CI_Controller {
 						'event_photo' => ''
 					);
 				$this->db->insert('events', $data);
-				redirect('adminmaintenance');
+				redirect('adminmaintenance/events');
 	        }
 	        else
 	        {
@@ -173,7 +173,7 @@ class Eventscontroller extends CI_Controller {
 						'event_photo' => $file_name
 					);
 				$this->db->insert('events', $data);
-				redirect('adminmaintenance');
+				redirect('adminmaintenance/events');
 	        }
         } else {
         	if (!$this->upload->do_upload('event_photo'))
@@ -188,7 +188,7 @@ class Eventscontroller extends CI_Controller {
 				$this->db->set('event_photo', '');
 				$this->db->where('event_id', $this->input->post('eventid'));
 				$this->db->update('events');
-				redirect('adminmaintenance');
+				redirect('adminmaintenance/events');
 	        }
 	        else
 	        {
@@ -205,7 +205,7 @@ class Eventscontroller extends CI_Controller {
 				$this->db->set('event_photo', $file_name);
 				$this->db->where('event_id', $this->input->post('eventid'));
 				$this->db->update('events');
-				redirect('adminmaintenance');
+				redirect('adminmaintenance/events');
 	        }
         }
 

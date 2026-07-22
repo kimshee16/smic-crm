@@ -32,7 +32,7 @@
               <?php
                     foreach ($application as $row) {
                   ?>
-              <form action="<?php echo base_url(); ?>index.php/saveapplication" method="post" enctype="multipart/form-data">
+              <form action="<?php echo base_url(); ?>index.php/saveapplication" method="post" enctype="multipart/form-data" id="applicationform">
                 <input type="hidden" name="studentapp_id" value="<?php echo $row->studentapp_id; ?>">
                 <input type="hidden" name="editfilelink" value="<?php echo $row->vevo_expiry; ?>">
                 <input type="hidden" name="formtype" value="edit">
@@ -58,10 +58,11 @@
                 </div>
                 <div class="mb-3">
                   <label for="program" class="form-label">Program</label>
-                  <select class="form-control select2" name="program" id="programlist" required style="width: 100%;">
+                  <select class="form-control select2" name="program[]" id="programlist" required multiple style="width: 100%;">
                       <?php
+                        $selectedProgramIds = isset($selected_program_ids) ? $selected_program_ids : array();
                         foreach ($programs as $row3) {
-                          if($row->studentapp_course_name == $row3->spid) {
+                          if(in_array($row3->spid, $selectedProgramIds)) {
                               $selected = "selected";
                           } else {
                               $selected = "";
@@ -116,11 +117,14 @@
                   <input type="date" name="vevo_expiry_date" class="form-control" value="<?php echo $row->vevo_expiry_date; ?>"  style="width: 50%;">
                 </div>
                 <div class="mb-3">
-                    <label for="vevoexpiry" class="form-label">VEVO Expiry</label>
-                    <input type="file" class="form-control" id="vevoexpiry" name="vevoexpiry" value="<?php echo $row->vevo_expiry; ?>">
-                    <p id="warning" style="color: red; display: none;">File size exceeds 10MB! Please select a smaller file.</p>
+                    <label class="form-label">VEVO Expiry</label>
+                    <?php
+                      if($row->vevo_expiry != "") {
+                        echo "<div><a href='".base_url()."assets/vevo/".$row->vevo_expiry."' target='_blank'>".$row->vevo_expiry."</a></div>";
+                      }
+                    ?>
                 </div>
-                <button type="submit" class="btn btn-primary">Submit</button>
+                <button type="submit" class="btn btn-primary" id="applicationsubmit">Submit</button>
               </form>
               <?php
                     }
@@ -220,6 +224,7 @@
               for(var i = 0; i < obj.length; i++) {
                 $("#programlist").append("<option value=" + obj[i].spid + ">" + obj[i].program + "</option>");
               }
+              $("#programlist").trigger("change");
           },
           error: function(error) {
             alert("Error!");
@@ -245,17 +250,8 @@
     $('.select2').select2();
 </script>
 <script>
-document.getElementById("vevoexpiry").addEventListener("change", function () {
-    const file = this.files[0]; // Get the selected file
-    const maxSize = 10 * 1024 * 1024; // 10MB in bytes
-    const warning = document.getElementById("warning");
-
-    if (file && file.size > maxSize) {
-        warning.style.display = "block"; // Show warning
-        this.value = ""; // **Remove the selected file**
-    } else {
-        warning.style.display = "none"; // Hide warning if file is valid
-    }
+document.getElementById("applicationform").addEventListener("submit", function () {
+    document.getElementById("applicationsubmit").disabled = true;
 });
 </script>
 </body>

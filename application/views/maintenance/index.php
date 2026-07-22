@@ -1,9 +1,32 @@
 <?php
     $this->load->view('layout/header');
+
+    $active_admin_page = isset($active_admin_page) ? $active_admin_page : 'offices';
+    $admin_page_urls = array(
+      'offices' => base_url().'index.php/adminmaintenance',
+      'officers' => base_url().'index.php/adminmaintenance/officers',
+      'officer-assignment' => base_url().'index.php/adminmaintenance/officer-assignment',
+      'region' => base_url().'index.php/adminmaintenance/region',
+      'events' => base_url().'index.php/adminmaintenance/events',
+      'privileges' => base_url().'index.php/adminmaintenance/privileges',
+      'email-contents' => base_url().'index.php/adminmaintenance/email-contents',
+      'parameters' => base_url().'index.php/adminmaintenance/parameters'
+    );
 ?>
+<style>
+  .admin-maintenance-page .tab-pane > .app-create-toolbar {
+    margin-top: 14px;
+    margin-bottom: 6px;
+    padding-bottom: 0;
+  }
+
+  .admin-maintenance-page .tab-pane > .card-body {
+    padding-top: 8px;
+  }
+</style>
 
   <!-- Content Wrapper. Contains page content -->
-  <div class="content-wrapper">
+  <div class="content-wrapper admin-maintenance-page">
     <!-- Content Header (Page header) -->
     <section class="content-header">
       <div class="container-fluid">
@@ -33,7 +56,7 @@
                     if ($privilege_manage_offices == "1") {
                   ?>
                   <li class="nav-item">
-                    <a class="nav-link maintenancetabs" id="offices1-tab" data-toggle="tab" href="#offices1" role="tab" aria-controls="offices1" aria-selected="true">Offices</a>
+                    <a class="nav-link maintenancetabs <?php echo $active_admin_page == 'offices' ? 'active' : ''; ?>" id="offices1-tab" href="<?php echo $admin_page_urls['offices']; ?>" role="tab" aria-controls="offices1" aria-selected="<?php echo $active_admin_page == 'offices' ? 'true' : 'false'; ?>">Offices</a>
                   </li>
                   <?php
                     }
@@ -42,13 +65,13 @@
                     if ($privilege_manage_officers == "1") {
                   ?>
                   <li class="nav-item">
-                    <a class="nav-link maintenancetabs" id="officer1-tab" data-toggle="tab" href="#officer1" role="tab" aria-controls="officer1" aria-selected="true">Officers</a>
+                    <a class="nav-link maintenancetabs <?php echo $active_admin_page == 'officers' ? 'active' : ''; ?>" id="officer1-tab" href="<?php echo $admin_page_urls['officers']; ?>" role="tab" aria-controls="officer1" aria-selected="<?php echo $active_admin_page == 'officers' ? 'true' : 'false'; ?>">Officers</a>
                   </li>
                   <li class="nav-item">
-                    <a class="nav-link maintenancetabs" id="officerassignment-tab" data-toggle="tab" href="#officerassignment" role="tab" aria-controls="officerassignment" aria-selected="false">Officer Assignment</a>
+                    <a class="nav-link maintenancetabs <?php echo $active_admin_page == 'officer-assignment' ? 'active' : ''; ?>" id="officerassignment-tab" href="<?php echo $admin_page_urls['officer-assignment']; ?>" role="tab" aria-controls="officerassignment" aria-selected="<?php echo $active_admin_page == 'officer-assignment' ? 'true' : 'false'; ?>">Officer Assignment</a>
                   </li>
                   <li class="nav-item">
-                    <a class="nav-link maintenancetabs" id="region1-tab" data-toggle="tab" href="#region1" role="tab" aria-controls="region1" aria-selected="false">Region</a>
+                    <a class="nav-link maintenancetabs <?php echo $active_admin_page == 'region' ? 'active' : ''; ?>" id="region1-tab" href="<?php echo $admin_page_urls['region']; ?>" role="tab" aria-controls="region1" aria-selected="<?php echo $active_admin_page == 'region' ? 'true' : 'false'; ?>">Region</a>
                   </li>
                   <?php
                     }
@@ -57,7 +80,7 @@
                     if ($privilege_manage_events == "1") {
                   ?>
                   <li class="nav-item">
-                    <a class="nav-link maintenancetabs" id="events-tab" data-toggle="tab" href="#events" role="tab" aria-controls="events" aria-selected="false">Events</a>
+                    <a class="nav-link maintenancetabs <?php echo $active_admin_page == 'events' ? 'active' : ''; ?>" id="events-tab" href="<?php echo $admin_page_urls['events']; ?>" role="tab" aria-controls="events" aria-selected="<?php echo $active_admin_page == 'events' ? 'true' : 'false'; ?>">Events</a>
                   </li>
                   <?php
                     }
@@ -66,7 +89,7 @@
                     if ($privilege_manage_privilege == "1") {
                   ?>
                   <li class="nav-item">
-                    <a class="nav-link maintenancetabs" id="priviledges-tab" data-toggle="tab" href="#priviledges" role="tab" aria-controls="priviledges" aria-selected="false">Priviledges</a>
+                    <a class="nav-link maintenancetabs <?php echo $active_admin_page == 'privileges' ? 'active' : ''; ?>" id="priviledges-tab" href="<?php echo $admin_page_urls['privileges']; ?>" role="tab" aria-controls="priviledges" aria-selected="<?php echo $active_admin_page == 'privileges' ? 'true' : 'false'; ?>">Privileges</a>
                   </li>
                   <?php
                     }
@@ -75,19 +98,19 @@
                     if ($privilege_manage_parameters == "1") {
                   ?>
                   <li class="nav-item">
-                    <a class="nav-link maintenancetabs" id="emailcontent-tab" data-toggle="tab" href="#emailcontent" role="tab" aria-controls="emailcontent" aria-selected="false">Email Contents</a>
+                    <a class="nav-link maintenancetabs <?php echo $active_admin_page == 'email-contents' ? 'active' : ''; ?>" id="emailcontent-tab" href="<?php echo $admin_page_urls['email-contents']; ?>" role="tab" aria-controls="emailcontent" aria-selected="<?php echo $active_admin_page == 'email-contents' ? 'true' : 'false'; ?>">Email Contents</a>
                   </li>
                   <li class="nav-item">
-                    <a class="nav-link maintenancetabs" id="parameters-tab" data-toggle="tab" href="#parameters" role="tab" aria-controls="parameters" aria-selected="false">Parameters</a>
+                    <a class="nav-link maintenancetabs <?php echo $active_admin_page == 'parameters' ? 'active' : ''; ?>" id="parameters-tab" href="<?php echo $admin_page_urls['parameters']; ?>" role="tab" aria-controls="parameters" aria-selected="<?php echo $active_admin_page == 'parameters' ? 'true' : 'false'; ?>">Parameters</a>
                   </li>
                   <?php
                     }
                   ?>
                 </ul>
             <div class="tab-content" id="myTabContent">
-              <div class="tab-pane fade show" id="offices1" role="tabpanel" aria-labelledby="offices-tab">
-                  <div class="card-header">
-                    <h3 class="card-title"><a href="newoffice">Add New Offices</a></h3>
+              <div class="tab-pane <?php echo $active_admin_page == 'offices' ? 'active' : ''; ?>" id="offices1" role="tabpanel" aria-labelledby="offices-tab">
+                  <div class="card-header app-create-toolbar">
+                    <a href="<?php echo base_url(); ?>index.php/newoffice" class="btn btn-primary app-create-btn"><i class="fas fa-plus" aria-hidden="true"></i> New Office</a>
                   </div>
                   <div class="card-body">
                     <table id="offices" class="table table-bordered table-striped">
@@ -126,7 +149,7 @@
                           <td>".$row->officer_name."</td>
                           <td>".$row->region_name."</td>
                           <td>".$row->offices_notes."</td>
-                          <td><a href='editoffice/".$row->offices_id."' class='btn btn-primary btn-xs'><i class='fa fa-edit' aria-hidden='true'></i></a> ".$deleteoffices."</td>
+                          <td><a href='".base_url()."index.php/editoffice/".$row->offices_id."' class='btn btn-primary btn-xs'><i class='fa fa-edit' aria-hidden='true'></i></a> ".$deleteoffices."</td>
                         </tr>";
                       }
                       ?>
@@ -135,9 +158,9 @@
                   </div>
 
               </div>
-              <div class="tab-pane fade show" id="officer1" role="tabpanel" aria-labelledby="officer1-tab">
-                  <div class="card-header">
-                    <h3 class="card-title"><a href="newofficer">Add New Officer</a></h3>
+              <div class="tab-pane <?php echo $active_admin_page == 'officers' ? 'active' : ''; ?>" id="officer1" role="tabpanel" aria-labelledby="officer1-tab">
+                  <div class="card-header app-create-toolbar">
+                    <a href="<?php echo base_url(); ?>index.php/newofficer" class="btn btn-primary app-create-btn"><i class="fas fa-plus" aria-hidden="true"></i> New Officer</a>
                   </div>
 
                   <div class="card-body">
@@ -167,7 +190,7 @@
                           <td>".$row->officer_role."</td>
                           <td>".$row->officer_status."</td>
                           <td>".$row->officer_last_logged_date."</td>
-                          <td><a href='editofficer/".$row->officer_id."' class='btn btn-primary btn-xs'><i class='fa fa-edit' aria-hidden='true'></i></a> ".$deleteofficer."</td>
+                          <td><a href='".base_url()."index.php/editofficer/".$row->officer_id."' class='btn btn-primary btn-xs'><i class='fa fa-edit' aria-hidden='true'></i></a> ".$deleteofficer."</td>
                         </tr>";
                       }
                       ?>
@@ -186,9 +209,9 @@
                   </div>
 
               </div>
-              <div class="tab-pane fade" id="officerassignment" role="tabpanel" aria-labelledby="officerassignment-tab">
-                  <div class="card-header">
-                    <h3 class="card-title"><a href="newassignment">Add New Region Assignment</a></h3>
+              <div class="tab-pane <?php echo $active_admin_page == 'officer-assignment' ? 'active' : ''; ?>" id="officerassignment" role="tabpanel" aria-labelledby="officerassignment-tab">
+                  <div class="card-header app-create-toolbar">
+                    <a href="<?php echo base_url(); ?>index.php/newassignment" class="btn btn-primary app-create-btn"><i class="fas fa-plus" aria-hidden="true"></i> New Region Assignment</a>
                   </div>
 
                   <div class="card-body">
@@ -216,7 +239,7 @@
                           <td>".$row->region_name."</td>
                           <td>".$row->city."</td>
                           <td>".$row->datecreated."</td>
-                          <td><a href='editassignment/".$row->oaid."' class='btn btn-primary btn-xs'><i class='fa fa-edit' aria-hidden='true'></i></a> ".$deleteoa."</td>
+                          <td><a href='".base_url()."index.php/editassignment/".$row->oaid."' class='btn btn-primary btn-xs'><i class='fa fa-edit' aria-hidden='true'></i></a> ".$deleteoa."</td>
                         </tr>";
                       }
                       ?>
@@ -225,9 +248,9 @@
                   </div>
 
               </div>
-              <div class="tab-pane fade" id="region1" role="tabpanel" aria-labelledby="region1-tab">
-                  <div class="card-header">
-                    <h3 class="card-title"><a href="newregion">Add Region</a></h3>
+              <div class="tab-pane <?php echo $active_admin_page == 'region' ? 'active' : ''; ?>" id="region1" role="tabpanel" aria-labelledby="region1-tab">
+                  <div class="card-header app-create-toolbar">
+                    <a href="<?php echo base_url(); ?>index.php/newregion" class="btn btn-primary app-create-btn"><i class="fas fa-plus" aria-hidden="true"></i> New Region</a>
                   </div>
 
                   <div class="card-body">
@@ -251,7 +274,7 @@
                         echo "<tr>
                           <td>".$row2->region_name."</td>
                           <td>".$row2->region_description."</td>
-                          <td><a href='editregion/".$row2->region_id."' class='btn btn-primary btn-xs'><i class='fa fa-edit' aria-hidden='true'></i></a> ".$deleteregion."</td>
+                          <td><a href='".base_url()."index.php/editregion/".$row2->region_id."' class='btn btn-primary btn-xs'><i class='fa fa-edit' aria-hidden='true'></i></a> ".$deleteregion."</td>
                         </tr>";
                       }
                       ?>
@@ -267,9 +290,9 @@
                   </div>
 
               </div>
-              <div class="tab-pane fade" id="events" role="tabpanel" aria-labelledby="events-tab">
-                  <div class="card-header">
-                    <h3 class="card-title"><a href="newevent">Add Event</a></h3>
+              <div class="tab-pane <?php echo $active_admin_page == 'events' ? 'active' : ''; ?>" id="events" role="tabpanel" aria-labelledby="events-tab">
+                  <div class="card-header app-create-toolbar">
+                    <a href="<?php echo base_url(); ?>index.php/newevent" class="btn btn-primary app-create-btn"><i class="fas fa-plus" aria-hidden="true"></i> New Event</a>
                   </div>
                   <!-- /.card-header -->
                   <div class="card-body">
@@ -310,7 +333,7 @@
                           <td>".$row2->event_info."</td>
                           <td>".$row2->event_comments."</td>
                           <td>".$photo."</td>
-                          <td><a href='editevent/".$row2->event_id."' class='btn btn-primary btn-xs'><i class='fa fa-edit' aria-hidden='true'></i></a> ".$deleteevent."</td>
+                          <td><a href='".base_url()."index.php/editevent/".$row2->event_id."' class='btn btn-primary btn-xs'><i class='fa fa-edit' aria-hidden='true'></i></a> ".$deleteevent."</td>
                         </tr>";
                       }
                       ?>
@@ -332,12 +355,12 @@
                   </div>
                   <!-- /.card-body -->
               </div>
-              <div class="tab-pane fade" id="emailcontent" role="tabpanel" aria-labelledby="emailcontent-tab">
+              <div class="tab-pane <?php echo $active_admin_page == 'email-contents' ? 'active' : ''; ?>" id="emailcontent" role="tabpanel" aria-labelledby="emailcontent-tab">
                   <div class="card-body">
                      <?php
                       foreach ($emailcontents as $row6) {
                       ?>
-                    <form action="saveemailcontent" method="post">
+                    <form action="<?php echo base_url(); ?>index.php/saveemailcontent" method="post">
                       <h5>Inquiry Auto Response Email</h5>
                       <div class="mb-3">
                         <label for="iaremailheader" class="form-label">Email header</label>
@@ -385,12 +408,12 @@
                   </div>
                   <!-- /.card-body -->
               </div>
-              <div class="tab-pane fade" id="parameters" role="tabpanel" aria-labelledby="parameters-tab">
+              <div class="tab-pane <?php echo $active_admin_page == 'parameters' ? 'active' : ''; ?>" id="parameters" role="tabpanel" aria-labelledby="parameters-tab">
                   <div class="card-body">
                      <?php
                       foreach ($parameters as $row7) {
                       ?>
-                    <form action="saveparameters" method="post">
+                    <form action="<?php echo base_url(); ?>index.php/saveparameters" method="post">
                       <h5>Parameters</h5>
                       <div class="mb-3">
                         <label for="iaremailheader" class="form-label">Account Name</label>
@@ -452,9 +475,9 @@
                   </div>
                   <!-- /.card-body -->
               </div>
-              <div class="tab-pane fade" id="priviledges" role="tabpanel" aria-labelledby="priviledges-tab">
+              <div class="tab-pane <?php echo $active_admin_page == 'privileges' ? 'active' : ''; ?>" id="priviledges" role="tabpanel" aria-labelledby="priviledges-tab">
                   <div class="card-body">
-                    <form action="updatepriviledge" method="post">
+                    <form action="<?php echo base_url(); ?>index.php/updatepriviledge" method="post">
                      <table style="font-size: 10px;">
                       <thead>
                         <thead>
@@ -742,8 +765,6 @@
   });
 </script>
 <script type="text/javascript">
-    document.getElementsByClassName("maintenancetabs")[0].click();
-
     function processPriviledge() {
       var baseurl11 = document.getElementById("baseurl").value;
 

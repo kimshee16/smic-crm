@@ -53,7 +53,8 @@
                     <option value='0'></option>
                     <?php
                     foreach ($applications as $row) {
-                      echo "<option value='".$row->studentapp_id."'>Student Application #".$row->studentapp_id." - ".$row->provider_name." - ".$row->studentapp_course_name."</option>";
+                      $application_programs = isset($row->application_programs) ? $row->application_programs : $row->studentapp_course_name;
+                      echo "<option value='".$row->studentapp_id."'>Student Application #".$row->studentapp_id." - ".$row->provider_name." - ".$application_programs."</option>";
                     }
                     ?>
                   </select> 

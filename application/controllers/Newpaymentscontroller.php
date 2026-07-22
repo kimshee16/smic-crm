@@ -53,16 +53,30 @@ class Newpaymentscontroller extends CI_Controller {
             
             $details = [];
     
+            $descriptions = is_array($descriptions) ? $descriptions : array();
+            $quantities = is_array($quantities) ? $quantities : array();
+            $unit_prices = is_array($unit_prices) ? $unit_prices : array();
+
             for ($i = 0; $i < count($descriptions); $i++) {
+                $description = isset($descriptions[$i]) ? trim($descriptions[$i]) : '';
+                $quantity = isset($quantities[$i]) ? $quantities[$i] : '';
+                $unit_price = isset($unit_prices[$i]) ? $unit_prices[$i] : '';
+
+                if ($description == '' && $quantity == '' && $unit_price == '') {
+                    continue;
+                }
+
                 $details[] = array(
                     'newpayments_id' => $newpayments_id,
-                    'description' => $descriptions[$i],
-                    'quantity' => $quantities[$i],
-                    'unit_price' => $unit_prices[$i]
+                    'description' => $description,
+                    'quantity' => $quantity,
+                    'unit_price' => $unit_price
                 );
             }
             
-            $this->db->insert_batch('newpayments_details', $details);
+            if (count($details) > 0) {
+                $this->db->insert_batch('newpayments_details', $details);
+            }
             
             if ($this->upload->do_upload('companylogo'))
             {
@@ -143,29 +157,51 @@ class Newpaymentscontroller extends CI_Controller {
             $gst_values   = $this->input->post('detailgst');
             $ids   = $this->input->post('detailid');
             
+            $descriptions = is_array($descriptions) ? $descriptions : array();
+            $quantities = is_array($quantities) ? $quantities : array();
+            $unit_prices = is_array($unit_prices) ? $unit_prices : array();
+            $ids = is_array($ids) ? $ids : array();
+            $kept_detail_ids = array();
+
             for ($i = 0; $i < count($descriptions); $i++) {
+                $description = isset($descriptions[$i]) ? trim($descriptions[$i]) : '';
+                $quantity = isset($quantities[$i]) ? $quantities[$i] : '';
+                $unit_price = isset($unit_prices[$i]) ? $unit_prices[$i] : '';
+                $detail_id = isset($ids[$i]) ? $ids[$i] : '';
+
+                if ($description == '' && $quantity == '' && $unit_price == '') {
+                    continue;
+                }
                 
-                if(!empty($ids[$i])) {
+                if(!empty($detail_id)) {
                     
-                    $this->db->set('description', $descriptions[$i]);
-            		$this->db->set('quantity', $quantities[$i]);
-            		$this->db->set('unit_price', $unit_prices[$i]);
-            		$this->db->where('id', $ids[$i]);
+                    $this->db->set('description', $description);
+            		$this->db->set('quantity', $quantity);
+            		$this->db->set('unit_price', $unit_price);
+            		$this->db->where('id', $detail_id);
             		$this->db->update('newpayments_details');
+            		$kept_detail_ids[] = $detail_id;
                     
                 } else {
                     
                     $data = array(
                         'newpayments_id' => $this->input->post('newpayments_id'),
-                        'description' => $descriptions[$i],
-                    	'quantity' => $quantities[$i],
-                    	'unit_price' => $unit_prices[$i]
+                        'description' => $description,
+                    	'quantity' => $quantity,
+                    	'unit_price' => $unit_price
                     );
                     $this->db->insert('newpayments_details', $data);
+                    $kept_detail_ids[] = $this->db->insert_id();
                     
                 }
                 
             }
+
+            $this->db->where('newpayments_id', $this->input->post('newpayments_id'));
+            if (count($kept_detail_ids) > 0) {
+                $this->db->where_not_in('id', $kept_detail_ids);
+            }
+            $this->db->delete('newpayments_details');
         	
             if ($this->upload->do_upload('companylogo'))
             {

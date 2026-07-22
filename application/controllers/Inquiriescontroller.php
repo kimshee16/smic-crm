@@ -140,39 +140,6 @@ class Inquiriescontroller extends CI_Controller {
 			$this->db->update('inquiries');
 
 			$data = array(
-						'details' => $row->inquiries_firstname." ".$row->inquiries_middlename." ".$row->inquiries_surname." to receive and approve the Program Options from PSC.",
-						'client_id' => $row->inquiries_id,
-						'officer_id' => $this->session->officer_id,
-						'datetime_created' => date("Y-m-d H:i:s"),
-						'status' => 'Created',
-						'module' => 'Program Options',
-						'associated_id' => $row->inquiries_id
-					);
-			$this->db->insert('tasklist', $data);
-
-			$data = array(
-						'details' => $row->inquiries_firstname." ".$row->inquiries_middlename." ".$row->inquiries_surname." to submit the required documents for the application",
-						'client_id' => $row->inquiries_id,
-						'officer_id' => $this->session->officer_id,
-						'datetime_created' => date("Y-m-d H:i:s"),
-						'status' => 'Created',
-						'module' => 'Documents',
-						'associated_id' => $row->inquiries_id
-					);
-			$this->db->insert('tasklist', $data);
-
-			$data = array(
-						'details' => $row->inquiries_firstname." ".$row->inquiries_middlename." ".$row->inquiries_surname." to process Visa application",
-						'client_id' => $row->inquiries_id,
-						'officer_id' => $this->session->officer_id,
-						'datetime_created' => date("Y-m-d H:i:s"),
-						'status' => 'Created',
-						'module' => 'Visa Application',
-						'associated_id' => $row->inquiries_id
-					);
-			$this->db->insert('tasklist', $data);
-
-			$data = array(
 						'details' => $this->session->officer_name." approved ".$row->inquiries_firstname." ".$row->inquiries_middlename." ".$row->inquiries_surname."<br>as official client.",
 						'date_created' => date("Y-m-d"),
 						'officer_id' => $this->session->officer_id,
@@ -258,39 +225,6 @@ class Inquiriescontroller extends CI_Controller {
             $this->db->set('inquiries_status', 'Transferred');
 			$this->db->where('inquiries_id', $inquiry_id);
 			$this->db->update('inquiries');
-
-			$data = array(
-						'details' => $row->inquiries_firstname." ".$row->inquiries_middlename." ".$row->inquiries_surname." to receive and approve the Program Options from PSC.",
-						'client_id' => $row->inquiries_id,
-						'officer_id' => $this->session->officer_id,
-						'datetime_created' => date("Y-m-d H:i:s"),
-						'status' => 'Created',
-						'module' => 'Program Options',
-						'associated_id' => $row->inquiries_id
-					);
-			$this->db->insert('tasklist', $data);
-
-			$data = array(
-						'details' => $row->inquiries_firstname." ".$row->inquiries_middlename." ".$row->inquiries_surname." to submit the required documents for the application",
-						'client_id' => $row->inquiries_id,
-						'officer_id' => $this->session->officer_id,
-						'datetime_created' => date("Y-m-d H:i:s"),
-						'status' => 'Created',
-						'module' => 'Documents',
-						'associated_id' => $row->inquiries_id
-					);
-			$this->db->insert('tasklist', $data);
-
-			$data = array(
-						'details' => $row->inquiries_firstname." ".$row->inquiries_middlename." ".$row->inquiries_surname." to process Visa application",
-						'client_id' => $row->inquiries_id,
-						'officer_id' => $this->session->officer_id,
-						'datetime_created' => date("Y-m-d H:i:s"),
-						'status' => 'Created',
-						'module' => 'Visa Application',
-						'associated_id' => $row->inquiries_id
-					);
-			$this->db->insert('tasklist', $data);
 
 			$data = array(
 						'details' => $this->session->officer_name." approved ".$row->inquiries_firstname." ".$row->inquiries_middlename." ".$row->inquiries_surname."<br>as official client.",

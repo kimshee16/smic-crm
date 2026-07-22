@@ -51,7 +51,7 @@ class Feecontroller extends CI_Controller {
             		$this->db->insert('fee_receipts', $data);
                 }
                 
-                redirect(base_url()."index.php/editclientinfo2/".$this->input->post('feeclientid')."#counselling");
+                redirect(base_url()."index.php/editclientinfo2/".$this->input->post('feeclientid')."/counselling");
                     
             } else {
                 
@@ -89,7 +89,7 @@ class Feecontroller extends CI_Controller {
                 
             }
             
-            redirect(base_url()."index.php/editclientinfo2/".$this->input->post('editfileclientid')."#counselling");
+            redirect(base_url()."index.php/editclientinfo2/".$this->input->post('editfileclientid')."/counselling");
 
                 
         }

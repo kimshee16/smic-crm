@@ -19,6 +19,21 @@ img{ max-width:100%;}
   clear: both;
   overflow: hidden;
 }
+
+.app-create-btn {
+  align-items: center;
+  display: inline-flex;
+  font-weight: 700;
+  gap: 7px;
+  min-height: 34px;
+  padding: 7px 12px;
+  white-space: nowrap;
+}
+
+.app-create-btn i {
+  font-size: 13px;
+}
+
 .top_spac{ margin: 20px 0 0;}
 
 
@@ -339,7 +354,7 @@ img{ max-width:100%;}
         <div class="searchpeople" id="searchpeople">
           <h3>New Contact</h3>
           <input type="hidden" id="searchpeopleindicator" value="hiddendiv">
-          <button type="button" id="createthread" class="btn btn-primary btn-xs">Create thread</button><br>
+          <button type="button" id="createthread" class="btn btn-primary btn-xs app-create-btn"><i class="fa fa-plus" aria-hidden="true"></i> New Thread</button><br>
           <?php
             $contactindex = 0;
             foreach($officer as $row2) {

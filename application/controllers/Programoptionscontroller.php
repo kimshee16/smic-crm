@@ -8,9 +8,105 @@ class Programoptionscontroller extends CI_Controller {
 		$this->load->library('session');
 		$this->load->helper('form');
 	}
+
+	private function ensure_po_simplified_table()
+	{
+		$this->db->query("
+			CREATE TABLE IF NOT EXISTS po_simplified (
+				id INT(11) NOT NULL AUTO_INCREMENT,
+				client_id INT(11) NOT NULL,
+				po_file VARCHAR(255) NOT NULL DEFAULT '',
+				po_date DATE NULL,
+				po_status VARCHAR(50) NOT NULL DEFAULT 'Uploaded',
+				PRIMARY KEY (id),
+				KEY client_id (client_id)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+		");
+	}
+
+	private function ensure_student_application_programs_table()
+	{
+		$this->db->query("
+			CREATE TABLE IF NOT EXISTS student_application_programs (
+				id INT(11) NOT NULL AUTO_INCREMENT,
+				studentapp_id INT(11) NOT NULL,
+				spid INT(11) NOT NULL,
+				programtype VARCHAR(255) NOT NULL DEFAULT '',
+				date_created DATETIME NOT NULL,
+				PRIMARY KEY (id),
+				UNIQUE KEY studentapp_program (studentapp_id, spid),
+				KEY studentapp_id (studentapp_id),
+				KEY spid (spid)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+		");
+
+		$this->db->query("
+			INSERT IGNORE INTO student_application_programs (studentapp_id, spid, programtype, date_created)
+			SELECT sa.studentapp_id, sp.spid, COALESCE(sp.programtype, ''), NOW()
+			FROM student_application sa
+			INNER JOIN schoolprograms sp ON sp.spid = sa.studentapp_course_name
+			WHERE sa.studentapp_course_name REGEXP '^[0-9]+$'
+		");
+	}
+
+	public function do_upload()
+	{
+		$this->ensure_po_simplified_table();
+
+		$upload_path = './assets/pofiles/';
+		if (!is_dir($upload_path)) {
+			mkdir($upload_path, 0755, true);
+		}
+
+		$config['upload_path'] = $upload_path;
+		$config['allowed_types'] = 'docx|doc|jpg|jpeg|png|pdf';
+		$config['max_size'] = 50000;
+		$config['max_width'] = 50000;
+		$config['max_height'] = 50000;
+
+		$this->load->library('upload', $config);
+
+		if ($this->input->post('formtype') == 'edit') {
+			$client_id = $this->input->post('editfileclientid');
+			$file_name = $this->input->post('editfilelink');
+
+			if ($this->upload->do_upload('pofile')) {
+				$upload_data = $this->upload->data();
+				$file_name = $upload_data['file_name'];
+			}
+
+			$this->db->set('po_date', $this->input->post('podatetime') ?: null);
+			$this->db->set('po_file', $file_name);
+			$this->db->set('po_status', $this->input->post('postatus') ?: 'Uploaded');
+			$this->db->where('id', $this->input->post('poid'));
+			$this->db->update('po_simplified');
+
+			redirect(base_url()."index.php/editclientinfo2/".$client_id."/counselling");
+			return;
+		}
+
+		$file_name = '';
+		if ($this->upload->do_upload('pofile')) {
+			$upload_data = $this->upload->data();
+			$file_name = $upload_data['file_name'];
+		}
+
+		$data = array(
+			'client_id' => $this->input->post('poclientid'),
+			'po_file' => $file_name,
+			'po_date' => $this->input->post('podatetime') ?: null,
+			'po_status' => 'Uploaded'
+		);
+		$this->db->insert('po_simplified', $data);
+
+		redirect(base_url()."index.php/editclientinfo2/".$this->input->post('poclientid')."/counselling");
+	}
 	
 	public function newprogramoption($client_id)
 	{
+		redirect(base_url()."index.php/editclientinfo2/".$client_id."/counselling");
+		return;
+
 		$asset_url = base_url()."assets/";
 		$data['title'] = "Program Options";
 		$data['asset_url'] = $asset_url;
@@ -26,7 +122,8 @@ class Programoptionscontroller extends CI_Controller {
 	    $query = $this->db->query($sql);
 	    $scholarships = $query->result();
 	    
-	    $sql4 = "SELECT * FROM student_application sp INNER JOIN education_provider ep ON sp.provider_id = ep.provider_id where client_id = '$client_id'";
+	    $this->ensure_student_application_programs_table();
+	    $sql4 = "SELECT sp.*, ep.*, COALESCE(sap.programs, legacysp.program, sp.studentapp_course_name) AS application_programs FROM student_application sp INNER JOIN education_provider ep ON sp.provider_id = ep.provider_id LEFT JOIN schoolprograms legacysp ON legacysp.spid = sp.studentapp_course_name LEFT JOIN (SELECT sap.studentapp_id, GROUP_CONCAT(sp2.program ORDER BY sap.id SEPARATOR ', ') AS programs FROM student_application_programs sap INNER JOIN schoolprograms sp2 ON sp2.spid = sap.spid GROUP BY sap.studentapp_id) sap ON sap.studentapp_id = sp.studentapp_id where client_id = '$client_id'";
 	    $query4 = $this->db->query($sql4);
 	    $applications = $query4->result();
 
@@ -178,7 +275,7 @@ class Programoptionscontroller extends CI_Controller {
     
         $this->db->insert('programoptions', $data);
     
-        redirect('editclientinfo2/' . $this->input->post('client_id') . "#counselling");
+        redirect('editclientinfo2/' . $this->input->post('client_id') . "/counselling");
     }
 
 // 	public function updateprogramoptions() {
@@ -290,7 +387,7 @@ class Programoptionscontroller extends CI_Controller {
         $this->db->where('poid', $poid);
         $this->db->update('programoptions');
     
-        redirect('editclientinfo2/' . $this->input->post('client_id') . "#counselling");
+        redirect('editclientinfo2/' . $this->input->post('client_id') . "/counselling");
     }
 
 	public function editprogramoption($poid)
@@ -341,7 +438,8 @@ class Programoptionscontroller extends CI_Controller {
         $query9 = $this->db->query($sql9);
         $newprogramoptionsdetails = $query9->result();
         
-        $sql4 = "SELECT * FROM student_application sp INNER JOIN education_provider ep ON sp.provider_id = ep.provider_id where client_id = '$client_id'";
+        $this->ensure_student_application_programs_table();
+        $sql4 = "SELECT sp.*, ep.*, COALESCE(sap.programs, legacysp.program, sp.studentapp_course_name) AS application_programs FROM student_application sp INNER JOIN education_provider ep ON sp.provider_id = ep.provider_id LEFT JOIN schoolprograms legacysp ON legacysp.spid = sp.studentapp_course_name LEFT JOIN (SELECT sap.studentapp_id, GROUP_CONCAT(sp2.program ORDER BY sap.id SEPARATOR ', ') AS programs FROM student_application_programs sap INNER JOIN schoolprograms sp2 ON sp2.spid = sap.spid GROUP BY sap.studentapp_id) sap ON sap.studentapp_id = sp.studentapp_id where client_id = '$client_id'";
 	    $query4 = $this->db->query($sql4);
 	    $applications = $query4->result();
 
@@ -662,7 +760,7 @@ class Programoptionscontroller extends CI_Controller {
 	{
 	    $this->db->where('poid', $poid);
         $pos = $this->db->get('programoptions');
-        $burl = base_url()."index.php/editclientinfo2/".$client_id."#counselling";
+        $burl = base_url()."index.php/editclientinfo2/".$client_id."/counselling";
         
         $pos2 = $pos->result();
         // print_r($pos2[0]->status);
@@ -677,12 +775,12 @@ class Programoptionscontroller extends CI_Controller {
             } elseif($pos2[0]->status == "Rejected") {
                 $this->db->where('poid', $poid);
 		        $this->db->delete('programoptions');
-		        redirect(base_url()."index.php/editclientinfo2/".$client_id."#counselling");
+		        redirect(base_url()."index.php/editclientinfo2/".$client_id."/counselling");
             }
         } elseif($pos2[0]->status == "Created") {
             $this->db->where('poid', $poid);
 		    $this->db->delete('programoptions');
-		    redirect(base_url()."index.php/editclientinfo2/".$client_id."#counselling");
+		    redirect(base_url()."index.php/editclientinfo2/".$client_id."/counselling");
         }
         
         // else {

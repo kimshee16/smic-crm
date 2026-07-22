@@ -20,6 +20,7 @@
   <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
   <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+  <link rel="stylesheet" href="<?php echo $asset_url; ?>css/app-tables.css">
   <style type="text/css">
     .select2-container .select2-selection--single{
         height:34px !important;
@@ -415,7 +416,7 @@
                       </tr>
                       </tfoot>
                     </table>
-                    <a href="<?php echo base_url(); ?>index.php/newapplication/103" class="btn btn-primary">New Application</a>
+                    <a href="<?php echo base_url(); ?>index.php/newapplication/103" class="btn btn-primary app-create-btn"><i class="fas fa-plus" aria-hidden="true"></i> New Application</a>
                   </div>
                   <div class="tab-pane fade" id="contact" role="tabpanel" aria-labelledby="contact-tab">Ramirez</div>
                   <div class="tab-pane fade" id="visaapplication" role="tabpanel" aria-labelledby="visaapplication-tab">
@@ -455,7 +456,7 @@
                         </tr>
                         </tfoot>
                       </table>
-                    <a href="<?php echo base_url(); ?>index.php/newscholarshipallocation/103" class="btn btn-primary">New Scholarship Allocation</a>
+                    <a href="<?php echo base_url(); ?>index.php/newscholarshipallocation/103" class="btn btn-primary app-create-btn"><i class="fas fa-plus" aria-hidden="true"></i> New Scholarship Allocation</a>
                   </div>
                   <div class="tab-pane fade" id="visaeoi" role="tabpanel" aria-labelledby="visaeoi-tab">
                       <br>
@@ -494,7 +495,7 @@
                         </tr>
                         </tfoot>
                       </table>
-                    <a href="<?php echo base_url(); ?>index.php/newscholarshipallocation/103" class="btn btn-primary">New Scholarship Allocation</a>
+                    <a href="<?php echo base_url(); ?>index.php/newscholarshipallocation/103" class="btn btn-primary app-create-btn"><i class="fas fa-plus" aria-hidden="true"></i> New Scholarship Allocation</a>
                   </div>
                   <div class="tab-pane fade" id="visaaccount" role="tabpanel" aria-labelledby="visaaccount-tab">
                       <br>
@@ -533,7 +534,7 @@
                         </tr>
                         </tfoot>
                       </table>
-                    <a href="<?php echo base_url(); ?>index.php/newscholarshipallocation/103" class="btn btn-primary">New Scholarship Allocation</a>
+                    <a href="<?php echo base_url(); ?>index.php/newscholarshipallocation/103" class="btn btn-primary app-create-btn"><i class="fas fa-plus" aria-hidden="true"></i> New Scholarship Allocation</a>
                   </div>
                   <div class="tab-pane fade" id="scholarshipallocation" role="tabpanel" aria-labelledby="scholarshipallocation-tab">
                       <br>
@@ -572,7 +573,7 @@
                         </tr>
                         </tfoot>
                       </table>
-                    <a href="<?php echo base_url(); ?>index.php/newscholarshipallocation/103" class="btn btn-primary">New Scholarship Allocation</a>
+                    <a href="<?php echo base_url(); ?>index.php/newscholarshipallocation/103" class="btn btn-primary app-create-btn"><i class="fas fa-plus" aria-hidden="true"></i> New Scholarship Allocation</a>
                   </div>
                   <div class="tab-pane fade" id="payments" role="tabpanel" aria-labelledby="payments-tab">
                       <br>
@@ -611,7 +612,7 @@
                         </tr>
                         </tfoot>
                       </table>
-                    <a href="<?php echo base_url(); ?>index.php/newscholarshipallocation/103" class="btn btn-primary">New Scholarship Allocation</a>
+                    <a href="<?php echo base_url(); ?>index.php/newscholarshipallocation/103" class="btn btn-primary app-create-btn"><i class="fas fa-plus" aria-hidden="true"></i> New Scholarship Allocation</a>
                   </div>
                 </div>
 

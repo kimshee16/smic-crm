@@ -10,6 +10,68 @@ class Formscontroller extends CI_Controller {
 		$this->load->library('email');
 	}
 
+	private function ensure_po_links_table()
+	{
+		$this->db->query("
+			CREATE TABLE IF NOT EXISTS po_links (
+				id INT(11) NOT NULL AUTO_INCREMENT,
+				client_id INT(11) NOT NULL,
+				link TEXT NOT NULL,
+				date_created DATETIME NOT NULL,
+				date_approved DATETIME NULL,
+				accessed TINYINT(1) NOT NULL DEFAULT 0,
+				approved TINYINT(1) NOT NULL DEFAULT 0 COMMENT '1=approved, 0=pending, -1=rejected',
+				PRIMARY KEY (id),
+				KEY client_id (client_id),
+				KEY accessed (accessed),
+				KEY approved (approved)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+		");
+	}
+
+	private function po_acceptance_link($student_google_drive_id)
+	{
+		return base_url() . 'index.php/programoptionform/' . (int) $student_google_drive_id;
+	}
+
+	private function get_po_link_for_drive_file($student_google_drive_id, $client_id)
+	{
+		$this->ensure_po_links_table();
+
+		$link = $this->po_acceptance_link($student_google_drive_id);
+		$query = $this->db->query(
+			"SELECT * FROM po_links WHERE client_id = ? AND (link = ? OR link LIKE ?) ORDER BY id DESC LIMIT 1",
+			array($client_id, $link, '%/programoptionform/' . (int) $student_google_drive_id)
+		);
+		$po_link = $query->row();
+		if ($po_link) {
+			return $po_link;
+		}
+
+		$data = array(
+			'client_id' => $client_id,
+			'link' => $link,
+			'date_created' => date('Y-m-d H:i:s'),
+			'accessed' => 0,
+			'approved' => 0
+		);
+		$this->db->insert('po_links', $data);
+		$data['id'] = $this->db->insert_id();
+
+		return (object) $data;
+	}
+
+	private function show_po_link_unavailable($message)
+	{
+		$asset_url = base_url() . 'assets/';
+		$data = array(
+			'title' => 'Program Options Link',
+			'asset_url' => $asset_url,
+			'message' => $message
+		);
+		$this->load->view('forms/po_link_unavailable', $data);
+	}
+
 	public function clientform()
 	{
 		$sql = "SELECT nationality,en_short_name FROM countries";
@@ -36,36 +98,161 @@ class Formscontroller extends CI_Controller {
 		$this->load->view('forms/clientform', $data);
 	}
 
-	public function programoptionform($poid)
+	public function programoptionform($student_google_drive_id)
 	{
-		$sql6 = "SELECT * FROM programoptions po inner join education_provider s on po.provider_id = s.provider_id inner join schoolprograms sp on sp.spid = po.sp_id inner join client c on po.client_id = c.client_id where po.poid = '$poid'";
-        $query6 = $this->db->query($sql6);
-        $programoptions = $query6->result();
-
-        $sql7 = "SELECT * FROM programoptionsdetails pod where poid = '$poid'";
-        $query7 = $this->db->query($sql7);
-        $programoptionsdetails = $query7->result();
-
-        $sql8 = "SELECT * FROM programoptions po inner join client c on po.client_id = c.client_id inner join clientscholarship csc on c.client_id = csc.clientid inner join scholarships s on s.scholarshipid = csc.scholarshipid inner join mastersetting m on s.paymenttype = m.id where po.poid = '$poid'";
-        $query8 = $this->db->query($sql8);
-        $scholarships = $query8->result();
-
-        $data['programoptions'] = $programoptions;
-        $data['programoptionsdetails'] = $programoptionsdetails;
-        $data['scholarships'] = $scholarships;        
-        $data['poid'] = $poid; 
-
-        $asset_url = base_url()."assets/";
-		$data['title'] = "Program Options Form";
-		$data['asset_url'] = $asset_url;
-
-// 		$this->load->view('forms/programoptionform', $data);
-        if(isset($this->session->officer_name)) {
-			$this->load->view('forms/programoptionform', $data);
-		} else {
-			redirect(base_url()."index.php/clientloginpo");
+		$student_google_drive_id = (int) $student_google_drive_id;
+		if ($student_google_drive_id <= 0) {
+			return $this->show_po_link_unavailable('This Program Options link is invalid.');
 		}
-		
+
+		$this->db->where('id', $student_google_drive_id);
+		$this->db->where('record_type', 'file');
+		$this->db->where('document_purpose', 'Counselling');
+		$this->db->where('document_type', 'Program Options');
+		$file = $this->db->get('student_google_drive', 1)->row();
+		if (!$file) {
+			return $this->show_po_link_unavailable('This Program Options file could not be found.');
+		}
+
+		$this->db->where('client_id', $file->client_id);
+		$client = $this->db->get('client', 1)->row();
+		if (!$client) {
+			return $this->show_po_link_unavailable('The client record for this Program Options link could not be found.');
+		}
+
+		$po_link = $this->get_po_link_for_drive_file($student_google_drive_id, $file->client_id);
+		if ((int) $po_link->approved === 1) {
+			return $this->show_po_link_unavailable('This Program Options link was already approved.');
+		}
+		if ((int) $po_link->approved === -1) {
+			return $this->show_po_link_unavailable('This Program Options link was already rejected.');
+		}
+		if ((int) $po_link->accessed === 1) {
+			return $this->show_po_link_unavailable('This Program Options link has already been accessed and is no longer available.');
+		}
+
+		$this->db->set('accessed', 1);
+		$this->db->where('id', $po_link->id);
+		$this->db->update('po_links');
+		$po_link->accessed = 1;
+
+		$preview_token = bin2hex(random_bytes(16));
+		$this->session->set_userdata('po_link_preview_' . $po_link->id, $preview_token);
+
+		$data = array(
+			'title' => 'Program Options Review',
+			'asset_url' => base_url() . 'assets/',
+			'client' => $client,
+			'file' => $file,
+			'po_link' => $po_link,
+			'preview_url' => base_url() . 'index.php/po_link_preview/' . $student_google_drive_id . '/' . $po_link->id . '?token=' . $preview_token
+		);
+		$this->load->view('forms/programoptionlinkform', $data);
+	}
+
+	public function po_link_preview($student_google_drive_id, $po_link_id)
+	{
+		$student_google_drive_id = (int) $student_google_drive_id;
+		$po_link_id = (int) $po_link_id;
+		if ($student_google_drive_id <= 0 || $po_link_id <= 0) {
+			show_error('Invalid Program Options preview link.', 404);
+			return;
+		}
+
+		$token = (string) $this->input->get('token');
+		$session_token = (string) $this->session->userdata('po_link_preview_' . $po_link_id);
+		if ($token == '' || $session_token == '' || !hash_equals($session_token, $token)) {
+			show_error('Program Options preview is no longer available.', 403);
+			return;
+		}
+
+		$this->db->where('id', $student_google_drive_id);
+		$this->db->where('record_type', 'file');
+		$file = $this->db->get('student_google_drive', 1)->row();
+		if (!$file) {
+			show_error('Program Options file was not found.', 404);
+			return;
+		}
+
+		$this->ensure_po_links_table();
+		$this->db->where('id', $po_link_id);
+		$this->db->where('client_id', $file->client_id);
+		$this->db->where('approved', 0);
+		$this->db->where('accessed', 1);
+		$po_link = $this->db->get('po_links', 1)->row();
+		if (!$po_link) {
+			show_error('Program Options preview is no longer available.', 403);
+			return;
+		}
+
+		$file_name = isset($file->drive_file_name) ? $file->drive_file_name : '';
+		$extension = strtolower(pathinfo($file_name, PATHINFO_EXTENSION));
+		if ($extension !== 'pdf' && $file->mime_type !== 'application/pdf') {
+			show_error('Only PDF Program Options files can be previewed on this page.', 415);
+			return;
+		}
+
+		try {
+			$this->load->library('google_drive_service');
+			$content = $this->google_drive_service->download_file($file->drive_file_id);
+			$this->output
+				->set_header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0')
+				->set_header('Pragma: no-cache')
+				->set_header('X-Content-Type-Options: nosniff')
+				->set_header('Content-Disposition: inline; filename="program-options.pdf"')
+				->set_content_type('application/pdf')
+				->set_output($content);
+		} catch (Exception $e) {
+			show_error($e->getMessage(), 500);
+		}
+	}
+
+	public function accept_po_link()
+	{
+		$this->respond_to_po_link(1);
+	}
+
+	public function reject_po_link()
+	{
+		$this->respond_to_po_link(-1);
+	}
+
+	private function respond_to_po_link($approved)
+	{
+		$po_link_id = (int) $this->input->post('po_link_id');
+		$student_google_drive_id = (int) $this->input->post('student_google_drive_id');
+		if ($po_link_id <= 0 || $student_google_drive_id <= 0) {
+			return $this->show_po_link_unavailable('This Program Options response is invalid.');
+		}
+
+		$this->db->where('id', $student_google_drive_id);
+		$this->db->where('record_type', 'file');
+		$file = $this->db->get('student_google_drive', 1)->row();
+		if (!$file) {
+			return $this->show_po_link_unavailable('This Program Options file could not be found.');
+		}
+
+		$this->ensure_po_links_table();
+		$this->db->where('id', $po_link_id);
+		$this->db->where('client_id', $file->client_id);
+		$this->db->where('approved', 0);
+		$po_link = $this->db->get('po_links', 1)->row();
+		if (!$po_link) {
+			return $this->show_po_link_unavailable('This Program Options link has already been completed or is no longer available.');
+		}
+
+		$this->db->set('approved', $approved);
+		$this->db->set('date_approved', date('Y-m-d H:i:s'));
+		$this->db->where('id', $po_link_id);
+		$this->db->update('po_links');
+		$this->session->unset_userdata('po_link_preview_' . $po_link_id);
+
+		$data = array(
+			'title' => 'Program Options Response',
+			'asset_url' => base_url() . 'assets/',
+			'status' => $approved === 1 ? 'accepted' : 'rejected'
+		);
+		$this->load->view('forms/po_link_success', $data);
 	}
 
 	public function programoptionform2($poid)

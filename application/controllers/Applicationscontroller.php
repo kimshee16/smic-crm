@@ -9,10 +9,118 @@ class Applicationscontroller extends CI_Controller {
 		$this->load->helper('form');
 	}
 
+	private function ensure_student_application_programs_table()
+	{
+		$this->db->query("
+			CREATE TABLE IF NOT EXISTS student_application_programs (
+				id INT(11) NOT NULL AUTO_INCREMENT,
+				studentapp_id INT(11) NOT NULL,
+				spid INT(11) NOT NULL,
+				programtype VARCHAR(255) NOT NULL DEFAULT '',
+				date_created DATETIME NOT NULL,
+				PRIMARY KEY (id),
+				UNIQUE KEY studentapp_program (studentapp_id, spid),
+				KEY studentapp_id (studentapp_id),
+				KEY spid (spid)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+		");
+
+		$this->db->query("
+			INSERT IGNORE INTO student_application_programs (studentapp_id, spid, programtype, date_created)
+			SELECT sa.studentapp_id, sp.spid, COALESCE(sp.programtype, ''), NOW()
+			FROM student_application sa
+			INNER JOIN schoolprograms sp ON sp.spid = sa.studentapp_course_name
+			WHERE sa.studentapp_course_name REGEXP '^[0-9]+$'
+		");
+	}
+
+	private function normalize_program_ids($programs)
+	{
+		if (!is_array($programs)) {
+			$programs = array($programs);
+		}
+
+		$program_ids = array();
+		foreach ($programs as $program) {
+			$program = trim($program);
+			if ($program !== '' && !in_array($program, $program_ids)) {
+				$program_ids[] = $program;
+			}
+		}
+
+		return $program_ids;
+	}
+
+	private function get_primary_program($program_ids)
+	{
+		if (count($program_ids) == 0) {
+			return array('spid' => '', 'programtype' => '');
+		}
+
+		$this->db->where('spid', $program_ids[0]);
+		$query = $this->db->get('schoolprograms', 1);
+		$program = $query->row();
+
+		if (!$program) {
+			return array('spid' => '', 'programtype' => '');
+		}
+
+		return array('spid' => $program->spid, 'programtype' => $program->programtype == null ? '' : $program->programtype);
+	}
+
+	private function save_student_application_programs($studentapp_id, $program_ids)
+	{
+		$this->ensure_student_application_programs_table();
+
+		$this->db->where('studentapp_id', $studentapp_id);
+		$this->db->delete('student_application_programs');
+
+		if (count($program_ids) == 0) {
+			return;
+		}
+
+		$this->db->where_in('spid', $program_ids);
+		$query = $this->db->get('schoolprograms');
+		$programs = array();
+		foreach ($query->result() as $program) {
+			$programs[$program->spid] = $program;
+		}
+
+		foreach ($program_ids as $program_id) {
+			if (!isset($programs[$program_id])) {
+				continue;
+			}
+
+			$this->db->insert('student_application_programs', array(
+				'studentapp_id' => $studentapp_id,
+				'spid' => $program_id,
+				'programtype' => $programs[$program_id]->programtype == null ? '' : $programs[$program_id]->programtype,
+				'date_created' => date('Y-m-d H:i:s')
+			));
+		}
+	}
+
+	private function get_student_application_program_ids($studentapp_id)
+	{
+		$this->ensure_student_application_programs_table();
+
+		$this->db->select('spid');
+		$this->db->where('studentapp_id', $studentapp_id);
+		$this->db->order_by('id', 'ASC');
+		$query = $this->db->get('student_application_programs');
+		$program_ids = array();
+		foreach ($query->result() as $row) {
+			$program_ids[] = $row->spid;
+		}
+
+		return $program_ids;
+	}
+
 	public function index()
 	{
+		$this->ensure_student_application_programs_table();
 
-		$sql = "SELECT *, sa.intake AS saintake FROM student_application sa inner join education_provider s on sa.provider_id = s.provider_id inner join client c on c.client_id = sa.client_id left join schoolprograms sp on sa.studentapp_course_name = sp.spid ORDER BY studentapp_id DESC";
+		$sql = "SELECT sa.*, s.*, c.*, sa.intake AS saintake, COALESCE(sap.programs, sp.program, sa.studentapp_course_name) AS program FROM student_application sa inner join education_provider s on sa.provider_id = s.provider_id inner join client c on c.client_id = sa.client_id left join schoolprograms sp on sa.studentapp_course_name = sp.spid LEFT JOIN (SELECT sap.studentapp_id, GROUP_CONCAT(sp2.program ORDER BY sap.id SEPARATOR ', ') AS programs FROM student_application_programs sap INNER JOIN schoolprograms sp2 ON sp2.spid = sap.spid GROUP BY sap.studentapp_id) sap ON sap.studentapp_id = sa.studentapp_id ORDER BY sa.studentapp_id DESC";
         $query = $this->db->query($sql);
         $result = $query->result();
 
@@ -130,6 +238,8 @@ class Applicationscontroller extends CI_Controller {
 	}
 
 	public function editapplication($appid) {
+		$this->ensure_student_application_programs_table();
+
 		$asset_url = base_url()."assets/";
 		$data['title'] = "Edit Application";
 		$data['asset_url'] = $asset_url;
@@ -152,6 +262,14 @@ class Applicationscontroller extends CI_Controller {
 	    $data['application'] = $application;
 		$data['schools'] = $schools;
 		$data['programs'] = $programs;
+		$data['selected_program_ids'] = $this->get_student_application_program_ids($appid);
+		if (count($data['selected_program_ids']) == 0) {
+			foreach ($application as $row4) {
+				if ($row4->studentapp_course_name != '') {
+					$data['selected_program_ids'][] = $row4->studentapp_course_name;
+				}
+			}
+		}
 
 		if($this->session->officer_role == "regional manager" || $this->session->officer_role == "admin") {
 			$officer_id_check = $this->session->officer_id;
@@ -226,15 +344,10 @@ class Applicationscontroller extends CI_Controller {
 		$year3 = date("Y",$time3);
 		$day3 = date("d",$time3);
 
-		$program = $this->input->post('program');
-		$sql = "SELECT * FROM schoolprograms WHERE spid = '$program'";
-        $query = $this->db->query($sql);
-        $programs = $query->result();
-
-        foreach($programs as $programrows) {
-        	$programname = $programrows->spid;
-        	$programtype = $programrows->programtype;
-        }
+		$program_ids = $this->normalize_program_ids($this->input->post('program'));
+		$primary_program = $this->get_primary_program($program_ids);
+		$programname = $primary_program['spid'];
+		$programtype = $primary_program['programtype'];
 
 		$data = array(
 					'client_id' => $this->input->post('clientid'),
@@ -272,9 +385,12 @@ class Applicationscontroller extends CI_Controller {
 					'remarks' => $this->input->post('remarks'),
 					'campus' => $this->input->post('campus')
 				);
+		$this->db->trans_start();
 		$this->db->insert('student_application', $data);
+		$this->save_student_application_programs($this->db->insert_id(), $program_ids);
+		$this->db->trans_complete();
 
-		redirect('editclientinfo2/'.$this->input->post('clientid')."#admission");
+		redirect('editclientinfo2/'.$this->input->post('clientid')."/admission");
 	}
     
 	public function updateapplication()
@@ -297,16 +413,12 @@ class Applicationscontroller extends CI_Controller {
 		$year3 = date("Y",$time3);
 		$day3 = date("d",$time3);
 
-		$program = $this->input->post('program');
-		$sql = "SELECT * FROM schoolprograms WHERE spid = '$program'";
-        $query = $this->db->query($sql);
-        $programs = $query->result();
+		$program_ids = $this->normalize_program_ids($this->input->post('program'));
+		$primary_program = $this->get_primary_program($program_ids);
+		$programname = $primary_program['spid'];
+		$programtype = $primary_program['programtype'];
 
-        foreach($programs as $programrows) {
-        	$programname = $programrows->spid;
-        	$programtype = $programrows->programtype;
-        }
-
+		$this->db->trans_start();
 		$this->db->set('provider_id', $this->input->post('school'));
 		$this->db->set('studentapp_course_starting_day', $day1);
 		$this->db->set('studentapp_course_starting_month', $month1);
@@ -327,12 +439,18 @@ class Applicationscontroller extends CI_Controller {
 		$this->db->set('campus', $this->input->post('campus'));
 		$this->db->where('studentapp_id', $this->input->post('studentapp_id'));
 		$this->db->update('student_application');
+		$this->save_student_application_programs($this->input->post('studentapp_id'), $program_ids);
+		$this->db->trans_complete();
 
-		redirect('editclientinfo2/'.$this->input->post('clientid')."#admission");
+		redirect('editclientinfo2/'.$this->input->post('clientid')."/admission");
 	}
 
 	public function deleteapplication($app_id)
 	{
+		$this->ensure_student_application_programs_table();
+		$this->db->where('studentapp_id', $app_id);
+		$this->db->delete('student_application_programs');
+
 		$this->db->where('studentapp_id', $app_id);
 		$this->db->delete('student_application');
 		
@@ -341,6 +459,10 @@ class Applicationscontroller extends CI_Controller {
 
 	public function deleteapplicationfromcinfo($app_id, $client_id)
 	{
+		$this->ensure_student_application_programs_table();
+		$this->db->where('studentapp_id', $app_id);
+		$this->db->delete('student_application_programs');
+
 		$this->db->where('studentapp_id', $app_id);
 		$this->db->delete('student_application');
 		

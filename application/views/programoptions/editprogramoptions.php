@@ -65,10 +65,11 @@
                     <option value='0'></option>
                     <?php
                     foreach ($applications as $row1) {
+                      $application_programs = isset($row1->application_programs) ? $row1->application_programs : $row1->studentapp_course_name;
                       if($row->application_id == $row1->studentapp_id) {
-                            echo "<option value='".$row1->studentapp_id."' selected>Student Application #".$row1->studentapp_id." - ".$row1->provider_name." - ".$row1->studentapp_course_name."</option>";
+                            echo "<option value='".$row1->studentapp_id."' selected>Student Application #".$row1->studentapp_id." - ".$row1->provider_name." - ".$application_programs."</option>";
                       } else {
-                            echo "<option value='".$row1->studentapp_id."'>Student Application #".$row1->studentapp_id." - ".$row1->provider_name." - ".$row1->studentapp_course_name."</option>";
+                            echo "<option value='".$row1->studentapp_id."'>Student Application #".$row1->studentapp_id." - ".$row1->provider_name." - ".$application_programs."</option>";
                       }
                     }
                     ?>

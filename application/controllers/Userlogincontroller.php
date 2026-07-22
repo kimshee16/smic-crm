@@ -79,7 +79,7 @@ class UserLoginController extends CI_Controller {
 	}
 
 	public function signout() {
-		$this->session->unset_userdata('officer_name','officer_role','officer_status','officer_id','email');
+		$this->session->unset_userdata(array('officer_name','officer_role','officer_status','officer_id','officer_photo','email'));
 		redirect(base_url());
 	}
 	

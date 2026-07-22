@@ -1,9 +1,68 @@
 <?php
     $this->load->view('layout/header');
 ?>
+<style>
+  .scholarship-page .tab-content {
+    padding-top: 16px;
+  }
+
+  .scholarship-toolbar {
+    align-items: center;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+
+  .scholarship-table-wrap {
+    overflow-x: auto;
+    width: 100%;
+  }
+
+  .scholarship-table-wrap .dataTables_wrapper {
+    min-width: 100%;
+  }
+
+  .scholarship-table-wrap table.dataTable {
+    width: 100% !important;
+  }
+
+  .scholarship-actions {
+    display: inline-flex;
+    gap: 6px;
+    white-space: nowrap;
+  }
+
+  .scholarship-actions .btn {
+    align-items: center;
+    display: inline-flex;
+    height: 32px;
+    justify-content: center;
+    min-width: 32px;
+    padding: 6px;
+  }
+
+  .scholarship-status {
+    border-radius: 999px;
+    display: inline-flex;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+    padding: 6px 10px;
+  }
+
+  .scholarship-status.active {
+    background: #e6f7ee;
+    color: #147a43;
+  }
+
+  .scholarship-status.inactive {
+    background: #eef2f6;
+    color: #667789;
+  }
+</style>
 
   <!-- Content Wrapper. Contains page content -->
-  <div class="content-wrapper">
+  <div class="content-wrapper scholarship-page">
     <!-- Content Header (Page header) -->
     <section class="content-header">
       <div class="container-fluid">
@@ -40,8 +99,10 @@
                 </ul>
               <div class="tab-content" id="myTabContent">
                   <div class="tab-pane fade show active" id="scholarshipfile" role="tabpanel" aria-labelledby="scholarshipfile-tab">
-                      <br>
-                      <h3 class="card-title"><a href="newscholarshipfile">Add New Scholarship File</a></h3><br>
+                      <div class="scholarship-toolbar">
+                        <a href="newscholarshipfile" class="btn btn-primary app-create-btn"><i class="fas fa-plus" aria-hidden="true"></i> New Scholarship File</a>
+                      </div>
+                      <div class="scholarship-table-wrap">
                       <table id="example2" class="table table-bordered table-striped">
                         <thead>
                         <tr>
@@ -54,22 +115,22 @@
                           <th>School</th>
                           <th>Program</th>
                           <th>Status</th>
-                          <th></th>
+                          <th>Actions</th>
                         </tr>
                         </thead>
                         <tbody>
                         <?php
                         foreach ($scholarships as $row) {
                           if($this->session->officer_role == "regional manager" || $this->session->officer_role == "admin" || $this->session->officer_role == "manager") {
-                              $deleteschofile = "<a href='deactivateschofile/".$row->scholarshipid."' class='btn btn-danger btn-xs'><i class='fa fa-trash confirmation' aria-hidden='true'></i></a>";
+                              $deleteschofile = "<a href='deactivateschofile/".$row->scholarshipid."' class='btn btn-danger btn-xs confirmation' title='Deactivate scholarship file' aria-label='Deactivate scholarship file'><i class='fa fa-trash' aria-hidden='true'></i></a>";
                           } else {
                               $deleteschofile = "";
                           }
 
                           if($row->bactive == 1) {
-                            $status = "Active";
+                            $status = "<span class='scholarship-status active'>Active</span>";
                           } else {
-                            $status = "Inactive";
+                            $status = "<span class='scholarship-status inactive'>Inactive</span>";
                           }
                           echo "<tr>
                             <td>".$row->type."</td>
@@ -81,16 +142,19 @@
                             <td>".$row->provider_name."</td>
                             <td>".$row->program."</td>
                             <td>".$status."</td>
-                            <td><a href='editscholarshipfile/".$row->scholarshipid."' class='btn btn-primary btn-xs'><i class='fa fa-edit' aria-hidden='true'></i></a> ".$deleteschofile."</td>
+                            <td><span class='scholarship-actions'><a href='editscholarshipfile/".$row->scholarshipid."' class='btn btn-primary btn-xs' title='Edit scholarship file' aria-label='Edit scholarship file'><i class='fa fa-edit' aria-hidden='true'></i></a>".$deleteschofile."</span></td>
                           </tr>";
                         }
                         ?>
                         </tbody>
                       </table>
+                      </div>
                   </div>
                   <div class="tab-pane fade" id="scholarshipallocation" role="tabpanel" aria-labelledby="scholarshipallocation-tab">
-                      <br>
-                      <h3 class="card-title"><a href="newscholarshipallocation">Add New Scholarship Allocation</a></h3><br>
+                      <div class="scholarship-toolbar">
+                        <a href="newscholarshipallocation" class="btn btn-primary app-create-btn"><i class="fas fa-plus" aria-hidden="true"></i> New Scholarship Allocation</a>
+                      </div>
+                      <div class="scholarship-table-wrap">
                       <table id="example1" class="table table-bordered table-striped">
                         <thead>
                         <tr>
@@ -98,34 +162,35 @@
                           <th>Scholarship</th>
                           <th>Status</th>
                           <th width="40%">Remarks</th>
-                          <th></th>
+                          <th>Actions</th>
                         </tr>
                         </thead>
                         <tbody>
                         <?php
                         foreach ($clientscholarship as $row) {
                           if($this->session->officer_role == "regional manager" || $this->session->officer_role == "admin" || $this->session->officer_role == "manager") {
-                              $deleteschoallo = "<a href='deactivateschoallo/".$row->csid."' class='btn btn-danger btn-xs'><i class='fa fa-trash confirmation' aria-hidden='true'></i></a>";
+                              $deleteschoallo = "<a href='deactivateschoallo/".$row->csid."' class='btn btn-danger btn-xs confirmation' title='Deactivate scholarship allocation' aria-label='Deactivate scholarship allocation'><i class='fa fa-trash' aria-hidden='true'></i></a>";
                           } else {
                               $deleteschoallo = "";
                           }
 
                           if($row->bactive == 1) {
-                            $status = "Active";
+                            $status = "<span class='scholarship-status active'>Active</span>";
                           } else {
-                            $status = "Inactive";
+                            $status = "<span class='scholarship-status inactive'>Inactive</span>";
                           }
                           echo "<tr>
                             <td>".$row->client_surname.", ".$row->client_firstname."</td>
                             <td>".$row->description."</td>
                             <td>".$status."</td>
                             <td>".$row->csremarks."</td>
-                            <td>".$deleteschoallo."</td>
+                            <td><span class='scholarship-actions'>".$deleteschoallo."</span></td>
                           </tr>";
                         }
                         ?>
                         </tbody>
                       </table>
+                      </div>
                   </div>
               </div>
 
@@ -171,19 +236,24 @@
 <script>
   $(function () {
     $("#example1").DataTable({
-      "responsive": true,
+      "responsive": false,
       "autoWidth": false,
+      "scrollX": true,
+      "columnDefs": [
+        { "orderable": false, "searchable": false, "targets": 4 }
+      ]
     });
     $('#example2').DataTable({
-    //   "paging": true,
-    //   "lengthChange": false,
-    //   "searching": false,
-    //   "ordering": true,
-    //   "info": true,
-    //   "autoWidth": false,
-    //   "responsive": true,
-      "responsive": true,
+      "responsive": false,
       "autoWidth": false,
+      "scrollX": true,
+      "columnDefs": [
+        { "orderable": false, "searchable": false, "targets": 9 }
+      ]
+    });
+
+    $('a[data-toggle="tab"]').on('shown.bs.tab', function () {
+      $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
     });
   });
 
