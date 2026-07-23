@@ -753,6 +753,9 @@
             .file-manager-file-icon.xls { background: #279c5b; }
             .file-manager-file-icon.file { background: #6c757d; }
             .file-manager-upload-file { padding: 6px; height: 44px; }
+            .file-manager-upload-progress { max-width: 520px; margin: -10px 0 22px; }
+            .file-manager-upload-progress .progress { height: 12px; border-radius: 6px; }
+            .file-manager-upload-status { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 7px; color: #495057; font-size: 13px; font-weight: 600; }
             .file-manager-table th, .file-manager-table td { vertical-align: middle !important; }
             .file-manager-table .btn-xs { min-width: 34px; }
             .file-shortcut-section { margin: 0 0 28px; }
@@ -860,6 +863,16 @@
                 <button type="button" class="btn btn-outline-primary" id="fileManagerClearFilters">
                   <i class="fas fa-sync-alt"></i> Clear Filters
                 </button>
+              </div>
+
+              <div class="file-manager-upload-progress" id="fileManagerUploadProgress" style="display:none;">
+                <div class="file-manager-upload-status">
+                  <span id="fileManagerUploadStatusText">Uploading file...</span>
+                  <span id="fileManagerUploadPercent">0%</span>
+                </div>
+                <div class="progress">
+                  <div class="progress-bar progress-bar-striped progress-bar-animated" id="fileManagerUploadProgressBar" role="progressbar" style="width: 0%;" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div>
+                </div>
               </div>
 
               <table id="filemanagertable" class="table table-bordered table-striped file-manager-table">
@@ -2829,6 +2842,42 @@ outlining your job title, responsibilities and duration of employment.</option>
       });
     });
 
+    var fileManagerMaxUploadBytes = 200 * 1024 * 1024;
+
+    function formatFileManagerBytes(bytes) {
+      var megabytes = bytes / (1024 * 1024);
+      return megabytes >= 1 ? megabytes.toFixed(megabytes >= 10 ? 0 : 1) + " MB" : Math.ceil(bytes / 1024) + " KB";
+    }
+
+    function updateFileManagerUploadProgress(percent, statusText) {
+      percent = Math.max(0, Math.min(100, percent));
+      $("#fileManagerUploadProgress").show();
+      $("#fileManagerUploadPercent").text(percent + "%");
+      $("#fileManagerUploadStatusText").text(statusText || "Uploading file...");
+      $("#fileManagerUploadProgressBar")
+        .css("width", percent + "%")
+        .attr("aria-valuenow", percent);
+    }
+
+    function resetFileManagerUploadProgress() {
+      $("#fileManagerUploadPercent").text("0%");
+      $("#fileManagerUploadStatusText").text("Uploading file...");
+      $("#fileManagerUploadProgressBar")
+        .css("width", "0%")
+        .attr("aria-valuenow", 0);
+      $("#fileManagerUploadProgress").hide();
+    }
+
+    $("#fileManagerUploadFile").on("change", function() {
+      var selectedFile = this.files && this.files.length ? this.files[0] : null;
+      resetFileManagerUploadProgress();
+
+      if (selectedFile && selectedFile.size > fileManagerMaxUploadBytes) {
+        alert("The selected file is " + formatFileManagerBytes(selectedFile.size) + ". File Manager uploads are limited to 200 MB.");
+        $(this).val("");
+      }
+    });
+
     $("#fileManagerUploadVisa").on("click", function() {
       var uploadInput = document.getElementById("fileManagerUploadFile");
       var selectedFile = uploadInput.files && uploadInput.files.length ? uploadInput.files[0] : null;
@@ -2852,6 +2901,12 @@ outlining your job title, responsibilities and duration of employment.</option>
         alert("Please choose a file to upload.");
         return;
       }
+      if (selectedFile.size > fileManagerMaxUploadBytes) {
+        alert("The selected file is " + formatFileManagerBytes(selectedFile.size) + ". File Manager uploads are limited to 200 MB.");
+        $(uploadInput).val("");
+        resetFileManagerUploadProgress();
+        return;
+      }
 
       var button = $(this);
       var formData = new FormData();
@@ -2862,6 +2917,8 @@ outlining your job title, responsibilities and duration of employment.</option>
       formData.append("document_file", selectedFile);
 
       button.prop("disabled", true).html('<i class="fas fa-cloud-upload-alt"></i> Uploading...');
+      $("#fileManagerUploadFile").prop("disabled", true);
+      updateFileManagerUploadProgress(0, "Uploading file...");
 
       $.ajax({
         type: "POST",
@@ -2870,10 +2927,25 @@ outlining your job title, responsibilities and duration of employment.</option>
         dataType: "json",
         processData: false,
         contentType: false,
+        xhr: function() {
+          var xhr = $.ajaxSettings.xhr();
+          if (xhr.upload) {
+            xhr.upload.addEventListener("progress", function(event) {
+              if (event.lengthComputable) {
+                var percent = Math.round((event.loaded / event.total) * 100);
+                var statusText = percent >= 100 ? "Saving to Google Drive..." : "Uploading file...";
+                updateFileManagerUploadProgress(percent, statusText);
+              }
+            }, false);
+          }
+          return xhr;
+        },
         success: function(response) {
           if (!response || !response.success) {
             alert(response && response.message ? response.message : "Unable to upload the file to Google Drive.");
             button.prop("disabled", false).html('<i class="fas fa-cloud-upload-alt"></i> Upload File');
+            $("#fileManagerUploadFile").prop("disabled", false);
+            resetFileManagerUploadProgress();
             return;
           }
 
@@ -2886,6 +2958,8 @@ outlining your job title, responsibilities and duration of employment.</option>
           }
           alert(message);
           button.prop("disabled", false).html('<i class="fas fa-cloud-upload-alt"></i> Upload File');
+          $("#fileManagerUploadFile").prop("disabled", false);
+          resetFileManagerUploadProgress();
         }
       });
     });

@@ -119,6 +119,24 @@ class Customerinfocontroller extends CI_Controller {
 			->set_output(json_encode($payload));
 	}
 
+	private function file_manager_max_upload_bytes()
+	{
+		return 200 * 1024 * 1024;
+	}
+
+	private function file_manager_upload_name($document_specific, $original_name)
+	{
+		$slug = strtolower(trim($document_specific));
+		$slug = preg_replace('/[^a-z0-9]+/', '_', $slug);
+		$slug = trim($slug, '_');
+		if ($slug == '') {
+			$slug = 'document';
+		}
+
+		$extension = strtolower(pathinfo($original_name, PATHINFO_EXTENSION));
+		return $slug . '_' . date('mdY') . ($extension != '' ? '.' . $extension : '');
+	}
+
 	private function get_client_row($client_id)
 	{
 		$this->db->where('client_id', $client_id);
@@ -845,8 +863,25 @@ class Customerinfocontroller extends CI_Controller {
 			return $this->json_response(array('success' => false, 'message' => 'Client, purpose, document type, and document specific are required.'), 422);
 		}
 
-		if (empty($_FILES['document_file']) || $_FILES['document_file']['error'] != UPLOAD_ERR_OK) {
+		if (empty($_FILES['document_file'])) {
 			return $this->json_response(array('success' => false, 'message' => 'Please choose a valid file to upload.'), 422);
+		}
+
+		if ($_FILES['document_file']['error'] != UPLOAD_ERR_OK) {
+			$message = 'Please choose a valid file to upload.';
+			if ($_FILES['document_file']['error'] == UPLOAD_ERR_INI_SIZE || $_FILES['document_file']['error'] == UPLOAD_ERR_FORM_SIZE) {
+				$message = 'The selected file is too large. File Manager uploads are limited to 200 MB.';
+			}
+			return $this->json_response(array('success' => false, 'message' => $message), 422);
+		}
+
+		$file_size = isset($_FILES['document_file']['size']) ? (int) $_FILES['document_file']['size'] : 0;
+		if ($file_size > $this->file_manager_max_upload_bytes()) {
+			return $this->json_response(array('success' => false, 'message' => 'The selected file is too large. File Manager uploads are limited to 200 MB.'), 422);
+		}
+
+		if (function_exists('set_time_limit')) {
+			@set_time_limit(0);
 		}
 
 		try {
@@ -854,13 +889,13 @@ class Customerinfocontroller extends CI_Controller {
 			$shared_drive_id = $this->config->item('google_shared_drive_id');
 
 			$original_name = basename($_FILES['document_file']['name']);
+			$drive_file_name = $this->file_manager_upload_name($document_specific, $original_name);
 			$mime_type = isset($_FILES['document_file']['type']) ? $_FILES['document_file']['type'] : 'application/octet-stream';
-			$file_size = isset($_FILES['document_file']['size']) ? (int) $_FILES['document_file']['size'] : 0;
 
 			$this->load->library('google_drive_service');
 			$drive_file = $this->google_drive_service->upload_file(
 				$_FILES['document_file']['tmp_name'],
-				$original_name,
+				$drive_file_name,
 				$mime_type,
 				$folder->student_folder_id,
 				$shared_drive_id
@@ -873,7 +908,7 @@ class Customerinfocontroller extends CI_Controller {
 				'parent_folder_id' => $folder->student_folder_id,
 				'student_folder_id' => $folder->student_folder_id,
 				'drive_file_id' => $drive_file['id'],
-				'drive_file_name' => isset($drive_file['name']) ? $drive_file['name'] : $original_name,
+				'drive_file_name' => isset($drive_file['name']) ? $drive_file['name'] : $drive_file_name,
 				'drive_web_view_link' => isset($drive_file['webViewLink']) ? $drive_file['webViewLink'] : '',
 				'drive_web_content_link' => isset($drive_file['webContentLink']) ? $drive_file['webContentLink'] : '',
 				'document_purpose' => $document_purpose,

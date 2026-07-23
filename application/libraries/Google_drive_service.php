@@ -35,23 +35,33 @@ class Google_drive_service
             throw new Exception('Upload file is not readable.');
         }
 
+        $file_size = filesize($file_path);
+        if ($file_size === false) {
+            throw new Exception('Unable to read upload file size.');
+        }
+
+        if ($mime_type == '') {
+            $mime_type = 'application/octet-stream';
+        }
+
         $metadata = array(
             'name' => $file_name,
             'parents' => array($parent_id)
         );
 
-        $boundary = 'smic_drive_' . bin2hex(random_bytes(12));
-        $body = "--{$boundary}\r\n";
-        $body .= "Content-Type: application/json; charset=UTF-8\r\n\r\n";
-        $body .= json_encode($metadata) . "\r\n";
-        $body .= "--{$boundary}\r\n";
-        $body .= "Content-Type: " . ($mime_type != '' ? $mime_type : 'application/octet-stream') . "\r\n\r\n";
-        $body .= file_get_contents($file_path) . "\r\n";
-        $body .= "--{$boundary}--";
+        $url = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&supportsAllDrives=true&fields=id,name,webViewLink,webContentLink,mimeType,size';
+        $response = $this->request_with_headers('POST', $url, json_encode($metadata), array(
+            'Content-Type: application/json; charset=UTF-8',
+            'X-Upload-Content-Type: ' . $mime_type,
+            'X-Upload-Content-Length: ' . $file_size
+        ));
 
-        $url = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true&fields=id,name,webViewLink,webContentLink,mimeType,size';
+        $upload_url = $this->header_value($response['headers'], 'Location');
+        if ($upload_url == '') {
+            throw new Exception('Google Drive did not return a resumable upload URL.');
+        }
 
-        return $this->request('POST', $url, $body, array('Content-Type: multipart/related; boundary=' . $boundary));
+        return $this->upload_resumable_file($upload_url, $file_path, $file_size, $mime_type);
     }
 
     public function download_file($file_id)
@@ -151,12 +161,20 @@ class Google_drive_service
         return $this->curl($method, $url, $body, $headers);
     }
 
+    private function request_with_headers($method, $url, $body = null, $headers = array())
+    {
+        $headers[] = 'Authorization: Bearer ' . $this->access_token();
+        return $this->curl_with_headers($method, $url, $body, $headers);
+    }
+
     private function curl($method, $url, $body = null, $headers = array())
     {
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 60);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 0);
 
         if ($body !== null) {
             curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
@@ -178,6 +196,98 @@ class Google_drive_service
         }
 
         return is_array($decoded) ? $decoded : array();
+    }
+
+    private function curl_with_headers($method, $url, $body = null, $headers = array())
+    {
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HEADER, true);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 60);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 0);
+
+        if ($body !== null) {
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
+        }
+
+        $raw = curl_exec($ch);
+        $error = curl_error($ch);
+        $status = curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+        $header_size = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
+        curl_close($ch);
+
+        if ($raw === false) {
+            throw new Exception('Google Drive request failed: ' . $error);
+        }
+
+        $raw_headers = substr($raw, 0, $header_size);
+        $raw_body = substr($raw, $header_size);
+        $decoded = json_decode($raw_body, true);
+
+        if ($status < 200 || $status >= 300) {
+            $message = isset($decoded['error']['message']) ? $decoded['error']['message'] : $raw_body;
+            throw new Exception('Google Drive API error: ' . $message);
+        }
+
+        return array(
+            'headers' => $raw_headers,
+            'body' => is_array($decoded) ? $decoded : array()
+        );
+    }
+
+    private function upload_resumable_file($upload_url, $file_path, $file_size, $mime_type)
+    {
+        $handle = fopen($file_path, 'rb');
+        if (!$handle) {
+            throw new Exception('Unable to open upload file for streaming.');
+        }
+
+        $ch = curl_init($upload_url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PUT');
+        curl_setopt($ch, CURLOPT_UPLOAD, true);
+        curl_setopt($ch, CURLOPT_INFILE, $handle);
+        curl_setopt($ch, CURLOPT_INFILESIZE, $file_size);
+        $content_range = $file_size > 0 ? 'bytes 0-' . ($file_size - 1) . '/' . $file_size : 'bytes */0';
+
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array(
+            'Content-Type: ' . $mime_type,
+            'Content-Length: ' . $file_size,
+            'Content-Range: ' . $content_range
+        ));
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 60);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 0);
+
+        $raw = curl_exec($ch);
+        $error = curl_error($ch);
+        $status = curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+        curl_close($ch);
+        fclose($handle);
+
+        if ($raw === false) {
+            throw new Exception('Google Drive upload failed: ' . $error);
+        }
+
+        $decoded = json_decode($raw, true);
+        if ($status < 200 || $status >= 300) {
+            $message = isset($decoded['error']['message']) ? $decoded['error']['message'] : $raw;
+            throw new Exception('Google Drive API error: ' . $message);
+        }
+
+        return is_array($decoded) ? $decoded : array();
+    }
+
+    private function header_value($headers, $name)
+    {
+        foreach (preg_split("/\r\n|\n|\r/", $headers) as $header) {
+            if (stripos($header, $name . ':') === 0) {
+                return trim(substr($header, strlen($name) + 1));
+            }
+        }
+
+        return '';
     }
 
     private function base64url($value)
