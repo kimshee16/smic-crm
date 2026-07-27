@@ -137,6 +137,158 @@ class Customerinfocontroller extends CI_Controller {
 		return $slug . '_' . date('mdY') . ($extension != '' ? '.' . $extension : '');
 	}
 
+	private function default_file_master_document_map()
+	{
+		return array(
+			'Admission' => array(
+				'Offer Letter' => array('Conditional Offer Letter', 'Provisional Offer Letter', 'Full Offer Letter', 'GSR', 'Financial Documents', 'IELTS/PTE'),
+				'VEVO Expiry' => array('VEVO Expiry')
+			),
+			'Counselling' => array(
+				'Fees' => array('Admin Fee', 'Refusal Fee', 'Processing Fee', 'Tuition Fee', 'Visa Application Fee', 'OSCH', 'Others'),
+				'Interview Form' => array('Interview Form'),
+				'Program Options' => array('Program Options'),
+				'Initial Requirements' => array('Updated CV', 'Birth Certificate', 'Transcript of Records/ Form 138', 'Employment Certificates', 'Passport', 'Diploma', 'Award Certificates', 'IELTS/ PTE')
+			),
+			'Visa Documentation' => array(
+				'School Documents' => array('Confirmation of Environment', 'OSHC Certificate', 'Form 956', 'Form 157A', 'Excel', 'Medical', 'Passport Stamps', 'English Proficiency Test', 'CV', 'Employment Certificate'),
+				'Financial Evidence' => array('Financial Support Statement', 'Passport/ Valid ID', 'Birth Certificate/ Marriage Certificate', 'Family Tree', 'Payslip/ ITR', 'Assets'),
+				'Asset Documents' => array('Land Title', 'OR/CR', 'Deed of Sale', 'DTI Permit', 'BIR Permit', 'BIR Certificate of Registration', "Business Permit/ Mayor's Permit/ Barangay Clearance", 'Tax Payment/ BIR'),
+				'Financial Documents' => array('Bank statements', 'Bank Certificate'),
+				'GSR' => array('GSR', 'GSR - Students', 'GSR - Admin', 'GSR - HO')
+			),
+			'Finalization' => array(
+				'Final GSR' => array('Final GSR'),
+				'Final DHA' => array('Final DHA'),
+				'Medical' => array('Medical'),
+				'Biometrics' => array('Biometrics'),
+				'Additional Documents' => array('Additional Documents'),
+				'Lodge Visa' => array('Lodge Visa'),
+				'S56' => array('S56')
+			)
+		);
+	}
+
+	private function ensure_file_master_settings_table()
+	{
+		$this->db->query("
+			CREATE TABLE IF NOT EXISTS file_master_settings (
+				fms_id INT(11) NOT NULL AUTO_INCREMENT,
+				parent_id INT(11) NOT NULL DEFAULT 0,
+				setting_level VARCHAR(30) NOT NULL,
+				setting_name VARCHAR(255) NOT NULL,
+				sort_order INT(11) NOT NULL DEFAULT 0,
+				bactive TINYINT(1) NOT NULL DEFAULT 1,
+				date_created DATETIME NOT NULL,
+				date_updated DATETIME NULL,
+				PRIMARY KEY (fms_id),
+				KEY parent_id (parent_id),
+				KEY setting_level (setting_level),
+				KEY bactive (bactive)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+		");
+
+		$count = $this->db->count_all('file_master_settings');
+		if ($count > 0) {
+			return;
+		}
+
+		$sort = 1;
+		foreach ($this->default_file_master_document_map() as $purpose => $document_types) {
+			$this->db->insert('file_master_settings', array(
+				'parent_id' => 0,
+				'setting_level' => 'purpose',
+				'setting_name' => $purpose,
+				'sort_order' => $sort++,
+				'bactive' => 1,
+				'date_created' => date('Y-m-d H:i:s')
+			));
+			$purpose_id = $this->db->insert_id();
+
+			$type_sort = 1;
+			foreach ($document_types as $document_type => $specifics) {
+				$this->db->insert('file_master_settings', array(
+					'parent_id' => $purpose_id,
+					'setting_level' => 'document_type',
+					'setting_name' => $document_type,
+					'sort_order' => $type_sort++,
+					'bactive' => 1,
+					'date_created' => date('Y-m-d H:i:s')
+				));
+				$type_id = $this->db->insert_id();
+
+				$specific_sort = 1;
+				foreach ($specifics as $specific) {
+					$this->db->insert('file_master_settings', array(
+						'parent_id' => $type_id,
+						'setting_level' => 'document_specific',
+						'setting_name' => $specific,
+						'sort_order' => $specific_sort++,
+						'bactive' => 1,
+						'date_created' => date('Y-m-d H:i:s')
+					));
+				}
+			}
+		}
+	}
+
+	private function get_file_master_document_map()
+	{
+		$this->ensure_file_master_settings_table();
+		$this->db->where('bactive', 1);
+		$this->db->order_by('sort_order', 'ASC');
+		$this->db->order_by('setting_name', 'ASC');
+		$settings = $this->db->get('file_master_settings')->result();
+
+		$purposes = array();
+		$types = array();
+		$specifics = array();
+		foreach ($settings as $row) {
+			if ($row->setting_level == 'purpose') {
+				$purposes[$row->fms_id] = $row->setting_name;
+			} elseif ($row->setting_level == 'document_type') {
+				$types[$row->fms_id] = $row;
+			} elseif ($row->setting_level == 'document_specific') {
+				$specifics[$row->parent_id][] = $row->setting_name;
+			}
+		}
+
+		$map = array();
+		foreach ($types as $type_id => $type) {
+			if (!isset($purposes[$type->parent_id])) {
+				continue;
+			}
+			$purpose_name = $purposes[$type->parent_id];
+			if (!isset($map[$purpose_name])) {
+				$map[$purpose_name] = array();
+			}
+			$map[$purpose_name][$type->setting_name] = isset($specifics[$type_id]) ? $specifics[$type_id] : array();
+		}
+
+		return $map;
+	}
+
+	private function get_file_master_document_specifics($document_map)
+	{
+		$document_specifics = array();
+		foreach ($document_map as $document_types) {
+			foreach ($document_types as $specifics) {
+				$document_specifics = array_merge($document_specifics, $specifics);
+			}
+		}
+		$document_specifics = array_unique($document_specifics);
+		sort($document_specifics);
+
+		return $document_specifics;
+	}
+
+	private function file_master_setting_combination_exists($purpose, $document_type, $document_specific)
+	{
+		$document_map = $this->get_file_master_document_map();
+		return isset($document_map[$purpose], $document_map[$purpose][$document_type])
+			&& in_array($document_specific, $document_map[$purpose][$document_type]);
+	}
+
 	private function get_client_row($client_id)
 	{
 		$this->db->where('client_id', $client_id);
@@ -455,6 +607,9 @@ class Customerinfocontroller extends CI_Controller {
         $query14 = $this->db->query($sql14);
         $client_files = $query14->result();
 
+        $file_master_document_map = $this->get_file_master_document_map();
+        $file_master_document_specifics = $this->get_file_master_document_specifics($file_master_document_map);
+
         $student_drive_folder = null;
         $student_drive_files = array();
         if ($this->student_google_drive_table_exists()) {
@@ -528,6 +683,8 @@ class Customerinfocontroller extends CI_Controller {
         $data['firebasefiles'] = $client_files;
         $data['student_drive_folder'] = $student_drive_folder;
         $data['student_drive_files'] = $student_drive_files;
+        $data['file_master_document_map'] = $file_master_document_map;
+        $data['file_master_document_specifics'] = $file_master_document_specifics;
         $data['po_links'] = $po_links;
         $data['admissionofferletter'] = $admissionofferletter;
         $data['result'] = $result;
@@ -861,6 +1018,10 @@ class Customerinfocontroller extends CI_Controller {
 
 		if ($client_id <= 0 || $document_purpose == '' || $document_type == '' || $document_specific == '') {
 			return $this->json_response(array('success' => false, 'message' => 'Client, purpose, document type, and document specific are required.'), 422);
+		}
+
+		if (!$this->file_master_setting_combination_exists($document_purpose, $document_type, $document_specific)) {
+			return $this->json_response(array('success' => false, 'message' => 'Please select a valid Files Master Settings combination.'), 422);
 		}
 
 		if (empty($_FILES['document_file'])) {

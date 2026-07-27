@@ -706,23 +706,14 @@
         <div class="tab-pane <?php echo $active_client_page == 'file-manager' ? 'active' : ''; ?>" id="file-manager" role="tabpanel" aria-labelledby="file-manager-tab">
           <?php
             $fileManagerDocuments = array();
-            $schoolDocuments = array("Confirmation of Environment", "OSHC Certificate", "Form 956", "Form 157A", "Excel", "Medical", "Passport Stamps", "English Proficiency Test", "CV", "Employment Certificate");
-            $financialEvidenceDocuments = array("Financial Support Statement", "Passport/ Valid ID", "Birth Certificate/ Marriage Certificate", "Family Tree", "Payslip/ ITR", "Assets");
-            $assetDocuments = array("Land Title", "OR/CR", "Deed of Sale", "DTI Permit", "BIR Permit", "BIR Certificate of Registration", "Business Permit/ Mayor's Permit/ Barangay Clearance", "Tax Payment/ BIR");
-            $financialDocuments = array("Bank statements", "Bank Certificate");
-            $gsrDocuments = array("GSR", "GSR - Students", "GSR - Admin", "GSR - HO");
-            $finalGsrDocuments = array("Final GSR");
-            $finalDhaDocuments = array("Final DHA");
-            $medicalDocuments = array("Medical");
-            $biometricsDocuments = array("Biometrics");
-            $additionalDocuments = array("Additional Documents");
-            $lodgeVisaDocuments = array("Lodge Visa");
-            $s56Documents = array("S56");
-            $offerLetterDocuments = array("Conditional Offer Letter", "Provisional Offer Letter", "Full Offer Letter", "GSR", "Financial Documents", "IELTS/PTE");
-            $feeDocuments = array("Admin Fee", "Refusal Fee", "Processing Fee", "Tuition Fee", "Visa Application Fee", "OSCH", "Others");
-            $interviewFormDocuments = array("Interview Form");
-            $programOptionDocuments = array("Program Options");
-            $initialRequirementDocuments = array("Updated CV", "Birth Certificate", "Transcript of Records/ Form 138", "Employment Certificates", "Passport", "Diploma", "Award Certificates", "IELTS/ PTE");
+            $fileManagerDocumentMap = isset($file_master_document_map) ? $file_master_document_map : array();
+            $documentSpecifics = isset($file_master_document_specifics) ? $file_master_document_specifics : array();
+            $documentTypes = array();
+            foreach ($fileManagerDocumentMap as $purposeDocumentTypes) {
+                $documentTypes = array_merge($documentTypes, array_keys($purposeDocumentTypes));
+            }
+            $documentTypes = array_unique($documentTypes);
+            sort($documentTypes);
 
             $studentDriveFiles = isset($student_drive_files) ? $student_drive_files : array();
             foreach ($studentDriveFiles as $fileRow) {
@@ -790,32 +781,22 @@
                   <label for="fileManagerPurposeFilter">Purpose</label>
                   <select class="form-control" id="fileManagerPurposeFilter">
                     <option value="">All Purposes</option>
-                    <option value="Admission">Admission</option>
-                    <option value="Counselling">Counselling</option>
-                    <option value="Visa Documentation">Visa Documentation</option>
-                    <option value="Finalization">Finalization</option>
+                    <?php
+                      foreach (array_keys($fileManagerDocumentMap) as $purpose) {
+                          echo '<option value="'.htmlspecialchars($purpose, ENT_QUOTES).'">'.htmlspecialchars($purpose).'</option>';
+                      }
+                    ?>
                   </select>
                 </div>
                 <div class="col-lg-3 col-md-6 mb-3">
                   <label for="fileManagerTypeFilter">Document Type</label>
                   <select class="form-control" id="fileManagerTypeFilter">
                     <option value="">All Document Types</option>
-                    <option value="Fees">Fees</option>
-                    <option value="Initial Requirements">Initial Requirements</option>
-                    <option value="Interview Form">Interview Form</option>
-                    <option value="Offer Letter">Offer Letter</option>
-                    <option value="Program Options">Program Options</option>
-                    <option value="School Documents">School Documents</option>
-                    <option value="Financial Evidence">Financial Evidence</option>
-                    <option value="Asset Documents">Asset Documents</option>
-                    <option value="Financial Documents">Financial Documents</option>
-                    <option value="Medical">Medical</option>
-                    <option value="Biometrics">Biometrics</option>
-                    <option value="Final GSR">Final GSR</option>
-                    <option value="Final DHA">Final DHA</option>
-                    <option value="Additional Documents">Additional Documents</option>
-                    <option value="Lodge Visa">Lodge Visa</option>
-                    <option value="S56">S56</option>
+                    <?php
+                      foreach ($documentTypes as $documentType) {
+                          echo '<option value="'.htmlspecialchars($documentType, ENT_QUOTES).'">'.htmlspecialchars($documentType).'</option>';
+                      }
+                    ?>
                   </select>
                 </div>
                 <div class="col-lg-3 col-md-6 mb-3">
@@ -823,27 +804,6 @@
                   <select class="form-control" id="fileManagerSpecificFilter">
                     <option value="">All Document Specifics</option>
                     <?php
-                      $documentSpecifics = array_merge(
-                          $schoolDocuments,
-                          $financialEvidenceDocuments,
-                          $assetDocuments,
-                          $financialDocuments,
-                          $gsrDocuments,
-                          $finalGsrDocuments,
-                          $finalDhaDocuments,
-                          $medicalDocuments,
-                          $biometricsDocuments,
-                          $additionalDocuments,
-                          $lodgeVisaDocuments,
-                          $s56Documents,
-                          $offerLetterDocuments,
-                          $feeDocuments,
-                          $interviewFormDocuments,
-                          $programOptionDocuments,
-                          $initialRequirementDocuments
-                      );
-                      $documentSpecifics = array_unique($documentSpecifics);
-                      sort($documentSpecifics);
                       foreach ($documentSpecifics as $specific) {
                           echo '<option value="'.htmlspecialchars($specific, ENT_QUOTES).'">'.htmlspecialchars($specific).'</option>';
                       }
@@ -2600,34 +2560,7 @@ outlining your job title, responsibilities and duration of employment.</option>
       "autoWidth": false,
     });
 
-    var fileManagerDocumentMap = {
-      "Admission": {
-        "Offer Letter": ["Conditional Offer Letter", "Provisional Offer Letter", "Full Offer Letter", "GSR", "Financial Documents", "IELTS/PTE"],
-        "VEVO Expiry": ["VEVO Expiry"]
-      },
-      "Counselling": {
-        "Fees": ["Admin Fee", "Refusal Fee", "Processing Fee", "Tuition Fee", "Visa Application Fee", "OSCH", "Others"],
-        "Interview Form": ["Interview Form"],
-        "Program Options": ["Program Options"],
-        "Initial Requirements": ["Updated CV", "Birth Certificate", "Transcript of Records/ Form 138", "Employment Certificates", "Passport", "Diploma", "Award Certificates", "IELTS/ PTE"]
-      },
-      "Visa Documentation": {
-        "School Documents": ["Confirmation of Environment", "OSHC Certificate", "Form 956", "Form 157A", "Excel", "Medical", "Passport Stamps", "English Proficiency Test", "CV", "Employment Certificate"],
-        "Financial Evidence": ["Financial Support Statement", "Passport/ Valid ID", "Birth Certificate/ Marriage Certificate", "Family Tree", "Payslip/ ITR", "Assets"],
-        "Asset Documents": ["Land Title", "OR/CR", "Deed of Sale", "DTI Permit", "BIR Permit", "BIR Certificate of Registration", "Business Permit/ Mayor's Permit/ Barangay Clearance", "Tax Payment/ BIR"],
-        "Financial Documents": ["Bank statements", "Bank Certificate"],
-        "GSR": ["GSR", "GSR - Students", "GSR - Admin", "GSR - HO"]
-      },
-      "Finalization": {
-        "Final GSR": ["Final GSR"],
-        "Final DHA": ["Final DHA"],
-        "Medical": ["Medical"],
-        "Biometrics": ["Biometrics"],
-        "Additional Documents": ["Additional Documents"],
-        "Lodge Visa": ["Lodge Visa"],
-        "S56": ["S56"]
-      }
-    };
+    var fileManagerDocumentMap = <?php echo json_encode($fileManagerDocumentMap, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP); ?>;
 
     function uniqueFileManagerValues(values) {
       var seen = {};

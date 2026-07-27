@@ -10,7 +10,8 @@
       'events' => base_url().'index.php/adminmaintenance/events',
       'privileges' => base_url().'index.php/adminmaintenance/privileges',
       'email-contents' => base_url().'index.php/adminmaintenance/email-contents',
-      'parameters' => base_url().'index.php/adminmaintenance/parameters'
+      'parameters' => base_url().'index.php/adminmaintenance/parameters',
+      'files-master-settings' => base_url().'index.php/adminmaintenance/files-master-settings'
     );
 ?>
 <style>
@@ -22,6 +23,93 @@
 
   .admin-maintenance-page .tab-pane > .card-body {
     padding-top: 8px;
+  }
+
+  .files-master-panel {
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    min-height: 420px;
+    background: #fff;
+  }
+
+  .files-master-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 16px;
+    border-bottom: 1px solid #e9ecef;
+  }
+
+  .files-master-panel-header h5 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  .files-master-panel-body {
+    padding: 14px 16px;
+  }
+
+  .files-master-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 520px;
+    overflow: auto;
+  }
+
+  .files-master-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 9px 10px;
+    background: #f8fafc;
+    color: #1f2937;
+  }
+
+  .files-master-item.active {
+    border-color: #007bff;
+    background: #eef6ff;
+  }
+
+  .files-master-item-main {
+    min-width: 0;
+    text-align: left;
+  }
+
+  .files-master-item-name {
+    display: block;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .files-master-item-count {
+    display: block;
+    color: #6c757d;
+    font-size: 12px;
+  }
+
+  .files-master-add-form {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+  .files-master-add-form .form-control {
+    min-width: 0;
+  }
+
+  .files-master-empty {
+    color: #6c757d;
+    padding: 18px 0;
+    text-align: center;
   }
 </style>
 
@@ -103,10 +191,29 @@
                   <li class="nav-item">
                     <a class="nav-link maintenancetabs <?php echo $active_admin_page == 'parameters' ? 'active' : ''; ?>" id="parameters-tab" href="<?php echo $admin_page_urls['parameters']; ?>" role="tab" aria-controls="parameters" aria-selected="<?php echo $active_admin_page == 'parameters' ? 'true' : 'false'; ?>">Parameters</a>
                   </li>
+                  <li class="nav-item">
+                    <a class="nav-link maintenancetabs <?php echo $active_admin_page == 'files-master-settings' ? 'active' : ''; ?>" id="files-master-settings-tab" href="<?php echo $admin_page_urls['files-master-settings']; ?>" role="tab" aria-controls="files-master-settings" aria-selected="<?php echo $active_admin_page == 'files-master-settings' ? 'true' : 'false'; ?>">Files Master Settings</a>
+                  </li>
                   <?php
                     }
                   ?>
                 </ul>
+                <?php if($this->session->flashdata('file_master_success')) { ?>
+                  <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
+                    <?php echo htmlspecialchars($this->session->flashdata('file_master_success')); ?>
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
+                <?php } ?>
+                <?php if($this->session->flashdata('file_master_error')) { ?>
+                  <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
+                    <?php echo htmlspecialchars($this->session->flashdata('file_master_error')); ?>
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                    </button>
+                  </div>
+                <?php } ?>
             <div class="tab-content" id="myTabContent">
               <div class="tab-pane <?php echo $active_admin_page == 'offices' ? 'active' : ''; ?>" id="offices1" role="tabpanel" aria-labelledby="offices-tab">
                   <div class="card-header app-create-toolbar">
@@ -474,6 +581,113 @@
                       ?>
                   </div>
                   <!-- /.card-body -->
+              </div>
+              <div class="tab-pane <?php echo $active_admin_page == 'files-master-settings' ? 'active' : ''; ?>" id="files-master-settings" role="tabpanel" aria-labelledby="files-master-settings-tab">
+                  <div class="card-body">
+                    <?php
+                      $fileMasterHierarchy = isset($file_master_hierarchy) ? $file_master_hierarchy : array();
+                      $firstPurposeId = count($fileMasterHierarchy) > 0 ? $fileMasterHierarchy[0]['row']->fms_id : 0;
+                      $firstTypeId = 0;
+                      if (count($fileMasterHierarchy) > 0 && count($fileMasterHierarchy[0]['types']) > 0) {
+                        $firstTypeId = $fileMasterHierarchy[0]['types'][0]['row']->fms_id;
+                      }
+                    ?>
+                    <div class="row">
+                      <div class="col-lg-4 mb-3">
+                        <div class="files-master-panel">
+                          <div class="files-master-panel-header">
+                            <h5>Purpose</h5>
+                          </div>
+                          <div class="files-master-panel-body">
+                            <form action="<?php echo base_url(); ?>index.php/savefilemastersetting" method="post" class="files-master-add-form">
+                              <input type="hidden" name="setting_level" value="purpose">
+                              <input type="text" class="form-control" name="setting_name" placeholder="New purpose" required>
+                              <button type="submit" class="btn btn-primary" title="Add Purpose"><i class="fas fa-plus" aria-hidden="true"></i></button>
+                            </form>
+                            <div class="files-master-list" id="filesMasterPurposeList">
+                              <?php if (count($fileMasterHierarchy) == 0) { ?>
+                                <div class="files-master-empty">No purposes yet.</div>
+                              <?php } ?>
+                              <?php foreach ($fileMasterHierarchy as $purposeIndex => $purposeItem) {
+                                $purpose = $purposeItem['row'];
+                                $typeCount = count($purposeItem['types']);
+                              ?>
+                                <div class="files-master-item files-master-purpose <?php echo $purposeIndex == 0 ? 'active' : ''; ?>" data-purpose-id="<?php echo (int) $purpose->fms_id; ?>" role="button" tabindex="0">
+                                  <span class="files-master-item-main">
+                                    <span class="files-master-item-name"><?php echo htmlspecialchars($purpose->setting_name); ?></span>
+                                    <span class="files-master-item-count"><?php echo $typeCount; ?> document type<?php echo $typeCount == 1 ? '' : 's'; ?></span>
+                                  </span>
+                                  <a href="<?php echo base_url(); ?>index.php/deletefilemastersetting/<?php echo (int) $purpose->fms_id; ?>" class="btn btn-danger btn-xs confirmation" data-confirm-message="Are you sure to delete this entry? Child items under it will also be removed from the active list." title="Delete Purpose"><i class="fa fa-trash" aria-hidden="true"></i></a>
+                                </div>
+                              <?php } ?>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-lg-4 mb-3">
+                        <div class="files-master-panel">
+                          <div class="files-master-panel-header">
+                            <h5>Document Type</h5>
+                          </div>
+                          <div class="files-master-panel-body">
+                            <form action="<?php echo base_url(); ?>index.php/savefilemastersetting" method="post" class="files-master-add-form">
+                              <input type="hidden" name="setting_level" value="document_type">
+                              <input type="hidden" name="parent_id" id="filesMasterTypeParentId" value="<?php echo (int) $firstPurposeId; ?>">
+                              <input type="text" class="form-control" name="setting_name" placeholder="New document type" required>
+                              <button type="submit" class="btn btn-primary" title="Add Document Type"><i class="fas fa-plus" aria-hidden="true"></i></button>
+                            </form>
+                            <div class="files-master-list" id="filesMasterTypeList">
+                              <?php foreach ($fileMasterHierarchy as $purposeIndex => $purposeItem) { ?>
+                                <?php foreach ($purposeItem['types'] as $typeIndex => $typeItem) {
+                                  $type = $typeItem['row'];
+                                  $specificCount = count($typeItem['specifics']);
+                                ?>
+                                  <div class="files-master-item files-master-type <?php echo $purposeIndex == 0 && $typeIndex == 0 ? 'active' : ''; ?>" data-parent-purpose="<?php echo (int) $purposeItem['row']->fms_id; ?>" data-type-id="<?php echo (int) $type->fms_id; ?>" role="button" tabindex="0" style="<?php echo $purposeIndex == 0 ? '' : 'display:none;'; ?>">
+                                    <span class="files-master-item-main">
+                                      <span class="files-master-item-name"><?php echo htmlspecialchars($type->setting_name); ?></span>
+                                      <span class="files-master-item-count"><?php echo $specificCount; ?> document specific<?php echo $specificCount == 1 ? '' : 's'; ?></span>
+                                    </span>
+                                    <a href="<?php echo base_url(); ?>index.php/deletefilemastersetting/<?php echo (int) $type->fms_id; ?>" class="btn btn-danger btn-xs confirmation" data-confirm-message="Are you sure to delete this entry? Child items under it will also be removed from the active list." title="Delete Document Type"><i class="fa fa-trash" aria-hidden="true"></i></a>
+                                  </div>
+                                <?php } ?>
+                              <?php } ?>
+                              <div class="files-master-empty" id="filesMasterTypeEmpty" style="display:none;">No document types under this purpose.</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="col-lg-4 mb-3">
+                        <div class="files-master-panel">
+                          <div class="files-master-panel-header">
+                            <h5>Document Specific</h5>
+                          </div>
+                          <div class="files-master-panel-body">
+                            <form action="<?php echo base_url(); ?>index.php/savefilemastersetting" method="post" class="files-master-add-form">
+                              <input type="hidden" name="setting_level" value="document_specific">
+                              <input type="hidden" name="parent_id" id="filesMasterSpecificParentId" value="<?php echo (int) $firstTypeId; ?>">
+                              <input type="text" class="form-control" name="setting_name" placeholder="New document specific" required>
+                              <button type="submit" class="btn btn-primary" title="Add Document Specific"><i class="fas fa-plus" aria-hidden="true"></i></button>
+                            </form>
+                            <div class="files-master-list" id="filesMasterSpecificList">
+                              <?php foreach ($fileMasterHierarchy as $purposeItem) { ?>
+                                <?php foreach ($purposeItem['types'] as $typeItem) { ?>
+                                  <?php foreach ($typeItem['specifics'] as $specificIndex => $specific) { ?>
+                                    <div class="files-master-item files-master-specific" data-parent-type="<?php echo (int) $typeItem['row']->fms_id; ?>" style="<?php echo $typeItem['row']->fms_id == $firstTypeId ? '' : 'display:none;'; ?>">
+                                      <span class="files-master-item-main">
+                                        <span class="files-master-item-name"><?php echo htmlspecialchars($specific->setting_name); ?></span>
+                                      </span>
+                                      <a href="<?php echo base_url(); ?>index.php/deletefilemastersetting/<?php echo (int) $specific->fms_id; ?>" class="btn btn-danger btn-xs confirmation" data-confirm-message="Are you sure to delete this entry?" title="Delete Document Specific"><i class="fa fa-trash" aria-hidden="true"></i></a>
+                                    </div>
+                                  <?php } ?>
+                                <?php } ?>
+                              <?php } ?>
+                              <div class="files-master-empty" id="filesMasterSpecificEmpty" style="display:none;">No document specifics under this document type.</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
               </div>
               <div class="tab-pane <?php echo $active_admin_page == 'privileges' ? 'active' : ''; ?>" id="priviledges" role="tabpanel" aria-labelledby="priviledges-tab">
                   <div class="card-body">
@@ -962,9 +1176,74 @@
       });
   }
 
+  function selectFilesMasterType(typeId) {
+    $(".files-master-type").removeClass("active");
+    var activeType = $(".files-master-type[data-type-id='" + typeId + "']");
+    activeType.addClass("active");
+    $("#filesMasterSpecificParentId").val(typeId || "");
+
+    $(".files-master-specific").hide();
+    var visibleSpecifics = $(".files-master-specific[data-parent-type='" + typeId + "']");
+    visibleSpecifics.show();
+    $("#filesMasterSpecificEmpty").toggle(visibleSpecifics.length === 0 && !!typeId);
+  }
+
+  function selectFilesMasterPurpose(purposeId) {
+    $(".files-master-purpose").removeClass("active");
+    $(".files-master-purpose[data-purpose-id='" + purposeId + "']").addClass("active");
+    $("#filesMasterTypeParentId").val(purposeId || "");
+
+    $(".files-master-type").hide().removeClass("active");
+    var visibleTypes = $(".files-master-type[data-parent-purpose='" + purposeId + "']");
+    visibleTypes.show();
+    $("#filesMasterTypeEmpty").toggle(visibleTypes.length === 0 && !!purposeId);
+
+    if (visibleTypes.length > 0) {
+      selectFilesMasterType(visibleTypes.first().data("type-id"));
+    } else {
+      $("#filesMasterSpecificParentId").val("");
+      $(".files-master-specific").hide();
+      $("#filesMasterSpecificEmpty").hide();
+    }
+  }
+
+  $(".files-master-purpose").on("click keypress", function(event) {
+    if (event.type === "keypress" && event.which !== 13 && event.which !== 32) {
+      return;
+    }
+    if ($(event.target).closest("a").length) {
+      return;
+    }
+    selectFilesMasterPurpose($(this).data("purpose-id"));
+  });
+
+  $(".files-master-type").on("click keypress", function(event) {
+    if (event.type === "keypress" && event.which !== 13 && event.which !== 32) {
+      return;
+    }
+    if ($(event.target).closest("a").length) {
+      return;
+    }
+    selectFilesMasterType($(this).data("type-id"));
+  });
+
+  $(".files-master-add-form").on("submit", function(event) {
+    var level = $(this).find("input[name='setting_level']").val();
+    var parentId = $(this).find("input[name='parent_id']").val();
+    if ((level === "document_type" || level === "document_specific") && (!parentId || parentId === "0")) {
+      event.preventDefault();
+      alert("Please select the parent item first.");
+    }
+  });
+
+  if ($(".files-master-purpose.active").length) {
+    selectFilesMasterPurpose($(".files-master-purpose.active").first().data("purpose-id"));
+  }
+
   var elems = document.getElementsByClassName('confirmation');
   var confirmIt = function (e) {
-      if (!confirm('Are you sure to delete the entry?')) e.preventDefault();
+      var message = this.getAttribute('data-confirm-message') || 'Are you sure to delete the entry?';
+      if (!confirm(message)) e.preventDefault();
   };
   for (var i = 0, l = elems.length; i < l; i++) {
       elems[i].addEventListener('click', confirmIt, false);

@@ -9,6 +9,166 @@ class Adminmaintenancecontroller extends CI_Controller {
 		$this->load->helper('form');
 	}
 
+	private function default_file_master_document_map()
+	{
+		return array(
+			'Admission' => array(
+				'Offer Letter' => array('Conditional Offer Letter', 'Provisional Offer Letter', 'Full Offer Letter', 'GSR', 'Financial Documents', 'IELTS/PTE'),
+				'VEVO Expiry' => array('VEVO Expiry')
+			),
+			'Counselling' => array(
+				'Fees' => array('Admin Fee', 'Refusal Fee', 'Processing Fee', 'Tuition Fee', 'Visa Application Fee', 'OSCH', 'Others'),
+				'Interview Form' => array('Interview Form'),
+				'Program Options' => array('Program Options'),
+				'Initial Requirements' => array('Updated CV', 'Birth Certificate', 'Transcript of Records/ Form 138', 'Employment Certificates', 'Passport', 'Diploma', 'Award Certificates', 'IELTS/ PTE')
+			),
+			'Visa Documentation' => array(
+				'School Documents' => array('Confirmation of Environment', 'OSHC Certificate', 'Form 956', 'Form 157A', 'Excel', 'Medical', 'Passport Stamps', 'English Proficiency Test', 'CV', 'Employment Certificate'),
+				'Financial Evidence' => array('Financial Support Statement', 'Passport/ Valid ID', 'Birth Certificate/ Marriage Certificate', 'Family Tree', 'Payslip/ ITR', 'Assets'),
+				'Asset Documents' => array('Land Title', 'OR/CR', 'Deed of Sale', 'DTI Permit', 'BIR Permit', 'BIR Certificate of Registration', "Business Permit/ Mayor's Permit/ Barangay Clearance", 'Tax Payment/ BIR'),
+				'Financial Documents' => array('Bank statements', 'Bank Certificate'),
+				'GSR' => array('GSR', 'GSR - Students', 'GSR - Admin', 'GSR - HO')
+			),
+			'Finalization' => array(
+				'Final GSR' => array('Final GSR'),
+				'Final DHA' => array('Final DHA'),
+				'Medical' => array('Medical'),
+				'Biometrics' => array('Biometrics'),
+				'Additional Documents' => array('Additional Documents'),
+				'Lodge Visa' => array('Lodge Visa'),
+				'S56' => array('S56')
+			)
+		);
+	}
+
+	private function ensure_file_master_settings_table()
+	{
+		$this->db->query("
+			CREATE TABLE IF NOT EXISTS file_master_settings (
+				fms_id INT(11) NOT NULL AUTO_INCREMENT,
+				parent_id INT(11) NOT NULL DEFAULT 0,
+				setting_level VARCHAR(30) NOT NULL,
+				setting_name VARCHAR(255) NOT NULL,
+				sort_order INT(11) NOT NULL DEFAULT 0,
+				bactive TINYINT(1) NOT NULL DEFAULT 1,
+				date_created DATETIME NOT NULL,
+				date_updated DATETIME NULL,
+				PRIMARY KEY (fms_id),
+				KEY parent_id (parent_id),
+				KEY setting_level (setting_level),
+				KEY bactive (bactive)
+			) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+		");
+
+		$count = $this->db->count_all('file_master_settings');
+		if ($count > 0) {
+			return;
+		}
+
+		$sort = 1;
+		foreach ($this->default_file_master_document_map() as $purpose => $document_types) {
+			$this->db->insert('file_master_settings', array(
+				'parent_id' => 0,
+				'setting_level' => 'purpose',
+				'setting_name' => $purpose,
+				'sort_order' => $sort++,
+				'bactive' => 1,
+				'date_created' => date('Y-m-d H:i:s')
+			));
+			$purpose_id = $this->db->insert_id();
+
+			$type_sort = 1;
+			foreach ($document_types as $document_type => $specifics) {
+				$this->db->insert('file_master_settings', array(
+					'parent_id' => $purpose_id,
+					'setting_level' => 'document_type',
+					'setting_name' => $document_type,
+					'sort_order' => $type_sort++,
+					'bactive' => 1,
+					'date_created' => date('Y-m-d H:i:s')
+				));
+				$type_id = $this->db->insert_id();
+
+				$specific_sort = 1;
+				foreach ($specifics as $specific) {
+					$this->db->insert('file_master_settings', array(
+						'parent_id' => $type_id,
+						'setting_level' => 'document_specific',
+						'setting_name' => $specific,
+						'sort_order' => $specific_sort++,
+						'bactive' => 1,
+						'date_created' => date('Y-m-d H:i:s')
+					));
+				}
+			}
+		}
+	}
+
+	private function get_file_master_settings()
+	{
+		$this->ensure_file_master_settings_table();
+		$this->db->where('bactive', 1);
+		$this->db->order_by('sort_order', 'ASC');
+		$this->db->order_by('setting_name', 'ASC');
+		return $this->db->get('file_master_settings')->result();
+	}
+
+	private function build_file_master_hierarchy($settings)
+	{
+		$hierarchy = array();
+		$types_by_parent = array();
+		$specifics_by_parent = array();
+
+		foreach ($settings as $row) {
+			if ($row->setting_level == 'document_type') {
+				$types_by_parent[$row->parent_id][] = $row;
+			} elseif ($row->setting_level == 'document_specific') {
+				$specifics_by_parent[$row->parent_id][] = $row;
+			}
+		}
+
+		foreach ($settings as $row) {
+			if ($row->setting_level != 'purpose') {
+				continue;
+			}
+
+			$purpose_types = array();
+			$type_rows = isset($types_by_parent[$row->fms_id]) ? $types_by_parent[$row->fms_id] : array();
+			foreach ($type_rows as $type_row) {
+				$purpose_types[] = array(
+					'row' => $type_row,
+					'specifics' => isset($specifics_by_parent[$type_row->fms_id]) ? $specifics_by_parent[$type_row->fms_id] : array()
+				);
+			}
+
+			$hierarchy[] = array(
+				'row' => $row,
+				'types' => $purpose_types
+			);
+		}
+
+		return $hierarchy;
+	}
+
+	private function get_file_master_children($parent_id)
+	{
+		$this->db->where('parent_id', $parent_id);
+		$this->db->where('bactive', 1);
+		return $this->db->get('file_master_settings')->result();
+	}
+
+	private function deactivate_file_master_branch($fms_id)
+	{
+		foreach ($this->get_file_master_children($fms_id) as $child) {
+			$this->deactivate_file_master_branch($child->fms_id);
+		}
+
+		$this->db->set('bactive', 0);
+		$this->db->set('date_updated', date('Y-m-d H:i:s'));
+		$this->db->where('fms_id', $fms_id);
+		$this->db->update('file_master_settings');
+	}
+
 	public function index($active_admin_page = 'offices')
 	{
 		$admin_page_aliases = array(
@@ -31,7 +191,11 @@ class Adminmaintenancecontroller extends CI_Controller {
 			'emailcontents' => 'email-contents',
 			'email-content' => 'email-contents',
 			'parameters' => 'parameters',
-			'parameter' => 'parameters'
+			'parameter' => 'parameters',
+			'files-master-settings' => 'files-master-settings',
+			'file-master-settings' => 'files-master-settings',
+			'filesmastersettings' => 'files-master-settings',
+			'filemastersettings' => 'files-master-settings'
 		);
 		$active_admin_page = strtolower(trim($active_admin_page));
 		$active_admin_page = isset($admin_page_aliases[$active_admin_page]) ? $admin_page_aliases[$active_admin_page] : 'offices';
@@ -70,6 +234,9 @@ class Adminmaintenancecontroller extends CI_Controller {
 	    $sql2 = "SELECT * FROM privilege";
 	    $query2 = $this->db->query($sql2);
 	    $privilege = $query2->result();
+
+	    $file_master_settings = $this->get_file_master_settings();
+	    $file_master_hierarchy = $this->build_file_master_hierarchy($file_master_settings);
 
 	    $this->db->where('privilege_id', $this->session->officer_role_id);
         $query3 = $this->db->get('privilege');
@@ -112,6 +279,7 @@ class Adminmaintenancecontroller extends CI_Controller {
 		if ($data['privilege_manage_parameters'] == "1") {
 			$allowed_admin_pages[] = 'email-contents';
 			$allowed_admin_pages[] = 'parameters';
+			$allowed_admin_pages[] = 'files-master-settings';
 		}
 		if (count($allowed_admin_pages) > 0 && !in_array($active_admin_page, $allowed_admin_pages)) {
 			$active_admin_page = $allowed_admin_pages[0];
@@ -130,6 +298,8 @@ class Adminmaintenancecontroller extends CI_Controller {
 		$data['parameters'] = $parameters;
 		$data['privilege'] = $privilege;
 		$data['events'] = $events;
+		$data['file_master_settings'] = $file_master_settings;
+		$data['file_master_hierarchy'] = $file_master_hierarchy;
 
 		if($this->session->officer_role == "regional manager" || $this->session->officer_role == "admin") {
 			$officer_id_check = $this->session->officer_id;
@@ -793,6 +963,82 @@ class Adminmaintenancecontroller extends CI_Controller {
 		$this->db->set('redeemable_point', $this->input->post('redeemable_point'));
 		$this->db->update('parameters');
 		redirect('adminmaintenance/parameters');
+	}
+
+	public function savefilemastersetting()
+	{
+		$this->ensure_file_master_settings_table();
+
+		$setting_level = trim((string) $this->input->post('setting_level'));
+		$setting_name = trim((string) $this->input->post('setting_name'));
+		$parent_id = (int) $this->input->post('parent_id');
+		$allowed_levels = array('purpose', 'document_type', 'document_specific');
+
+		if (!in_array($setting_level, $allowed_levels) || $setting_name == '') {
+			$this->session->set_flashdata('file_master_error', 'Please provide a valid Files Master item.');
+			redirect('adminmaintenance/files-master-settings');
+		}
+
+		if ($setting_level == 'purpose') {
+			$parent_id = 0;
+		} else {
+			$required_parent_level = $setting_level == 'document_type' ? 'purpose' : 'document_type';
+			$this->db->where('fms_id', $parent_id);
+			$this->db->where('setting_level', $required_parent_level);
+			$this->db->where('bactive', 1);
+			$parent = $this->db->get('file_master_settings', 1)->row();
+			if (!$parent) {
+				$this->session->set_flashdata('file_master_error', 'Please select the parent item first.');
+				redirect('adminmaintenance/files-master-settings');
+			}
+		}
+
+		$this->db->where('parent_id', $parent_id);
+		$this->db->where('setting_level', $setting_level);
+		$this->db->where('setting_name', $setting_name);
+		$this->db->where('bactive', 1);
+		$duplicate = $this->db->get('file_master_settings', 1)->row();
+		if ($duplicate) {
+			$this->session->set_flashdata('file_master_error', 'That Files Master item already exists under the selected parent.');
+			redirect('adminmaintenance/files-master-settings');
+		}
+
+		$this->db->select_max('sort_order');
+		$this->db->where('parent_id', $parent_id);
+		$this->db->where('setting_level', $setting_level);
+		$max_sort = $this->db->get('file_master_settings')->row();
+		$sort_order = isset($max_sort->sort_order) ? ((int) $max_sort->sort_order + 1) : 1;
+
+		$this->db->insert('file_master_settings', array(
+			'parent_id' => $parent_id,
+			'setting_level' => $setting_level,
+			'setting_name' => $setting_name,
+			'sort_order' => $sort_order,
+			'bactive' => 1,
+			'date_created' => date('Y-m-d H:i:s')
+		));
+
+		$this->session->set_flashdata('file_master_success', 'Files Master item added.');
+		redirect('adminmaintenance/files-master-settings');
+	}
+
+	public function deletefilemastersetting($fms_id)
+	{
+		$this->ensure_file_master_settings_table();
+
+		$fms_id = (int) $fms_id;
+		$this->db->where('fms_id', $fms_id);
+		$this->db->where('bactive', 1);
+		$row = $this->db->get('file_master_settings', 1)->row();
+
+		if (!$row) {
+			$this->session->set_flashdata('file_master_error', 'Files Master item was not found.');
+			redirect('adminmaintenance/files-master-settings');
+		}
+
+		$this->deactivate_file_master_branch($fms_id);
+		$this->session->set_flashdata('file_master_success', 'Files Master item deleted.');
+		redirect('adminmaintenance/files-master-settings');
 	}
 
 	public function updatepriviledge()
