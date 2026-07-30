@@ -716,6 +716,7 @@
             sort($documentTypes);
 
             $studentDriveFiles = isset($student_drive_files) ? $student_drive_files : array();
+            $fileManagerFeeReceipts = isset($file_manager_fee_receipts) ? $file_manager_fee_receipts : array();
             foreach ($studentDriveFiles as $fileRow) {
                 $fileManagerDocuments[] = array(
                     "row" => $fileRow,
@@ -744,11 +745,14 @@
             .file-manager-file-icon.xls { background: #279c5b; }
             .file-manager-file-icon.file { background: #6c757d; }
             .file-manager-upload-file { padding: 6px; height: 44px; }
+            .file-manager-fee-amount-wrap { display: none; }
             .file-manager-upload-progress { max-width: 520px; margin: -10px 0 22px; }
             .file-manager-upload-progress .progress { height: 12px; border-radius: 6px; }
             .file-manager-upload-status { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 7px; color: #495057; font-size: 13px; font-weight: 600; }
             .file-manager-table th, .file-manager-table td { vertical-align: middle !important; }
             .file-manager-table .btn-xs { min-width: 34px; }
+            .monitoring-value-link { color: #007bff; font-weight: 700; text-decoration: none; }
+            .monitoring-value-link:hover { text-decoration: underline; }
             .file-shortcut-section { margin: 0 0 28px; }
             .file-shortcut-section h5 { margin: 0 0 8px; font-weight: 700; }
             .file-shortcut-section p { margin: 0; }
@@ -810,6 +814,10 @@
                     ?>
                   </select>
                 </div>
+                <div class="col-lg-3 col-md-6 mb-3 file-manager-fee-amount-wrap" id="fileManagerFeeAmountWrap">
+                  <label for="fileManagerFeeAmount">Fee Amount</label>
+                  <input type="number" class="form-control" id="fileManagerFeeAmount" step=".01" min="0" placeholder="0.00">
+                </div>
                 <div class="col-lg-3 col-md-6 mb-3">
                   <label for="fileManagerUploadFile">Upload New Document</label>
                   <input type="file" class="form-control file-manager-upload-file" id="fileManagerUploadFile">
@@ -842,6 +850,7 @@
                     <th>Purpose</th>
                     <th>Document Type</th>
                     <th>Document Specific</th>
+                    <th>Amount</th>
                     <th>Uploaded By</th>
                     <th>Upload Date</th>
                     <th>File Size</th>
@@ -874,16 +883,31 @@
                             $fileSize = $row->file_size >= 1048576 ? round($row->file_size / 1048576, 2)." MB" : round($row->file_size / 1024, 2)." KB";
                         }
                         $fileLink = isset($row->drive_web_view_link) && $row->drive_web_view_link != "" ? $row->drive_web_view_link : "#";
+                        $feeReceipt = null;
+                        if (isset($row->drive_web_view_link) && isset($fileManagerFeeReceipts[$row->drive_web_view_link])) {
+                            $feeReceipt = $fileManagerFeeReceipts[$row->drive_web_view_link];
+                        } elseif (isset($row->drive_file_name) && isset($fileManagerFeeReceipts[$row->drive_file_name])) {
+                            $feeReceipt = $fileManagerFeeReceipts[$row->drive_file_name];
+                        }
+                        $feeAmount = "-";
+                        $feeEditButton = "";
+                        if ($feeReceipt) {
+                            $feeEditUrl = base_url()."index.php/editfile?type=fee&id=".(int) $feeReceipt->id."&client=".(int) $client_id;
+                            $feeAmount = "<a href='".htmlspecialchars($feeEditUrl, ENT_QUOTES)."' class='monitoring-value-link'>".htmlspecialchars($feeReceipt->fee_amount)."</a>";
+                            $feeEditButton = "<a href='".htmlspecialchars($feeEditUrl, ENT_QUOTES)."' class='btn btn-outline-primary btn-xs' title='Edit fee amount'><i class='fa fa-edit'></i></a>";
+                        }
                         echo "<tr>
                             <td><div class='file-manager-file'><span class='file-manager-file-icon ".$iconClass."'>".$iconLabel."</span><span>".htmlspecialchars($fileName)."</span></div></td>
                             <td>".htmlspecialchars($document["purpose"])."</td>
                             <td>".htmlspecialchars($document["document_group"])."</td>
                             <td>".htmlspecialchars($document["document_specific"])."</td>
+                            <td>".$feeAmount."</td>
                             <td>".htmlspecialchars($uploadedBy)."</td>
                             <td>".$uploadDate."</td>
                             <td>".$fileSize."</td>
                             <td>
                               <a href='".htmlspecialchars($fileLink, ENT_QUOTES)."' target='_blank' class='btn btn-outline-primary btn-xs' title='Open in Google Drive'><i class='fab fa-google-drive'></i></a>
+                              ".$feeEditButton."
                             </td>
                           </tr>";
                     }
@@ -2625,7 +2649,21 @@ outlining your job title, responsibilities and duration of employment.</option>
       $("#fileManagerTypeFilter").val(documentType);
       refreshFileManagerOptions();
       $("#fileManagerSpecificFilter").val(documentSpecific || "");
+      refreshFileManagerFeeAmountControl();
       applyFileManagerFilters();
+    }
+
+    function isFileManagerFeeUpload() {
+      return $("#fileManagerPurposeFilter").val() === "Counselling" && $("#fileManagerTypeFilter").val() === "Fees";
+    }
+
+    function refreshFileManagerFeeAmountControl() {
+      if (isFileManagerFeeUpload()) {
+        $("#fileManagerFeeAmountWrap").show();
+      } else {
+        $("#fileManagerFeeAmountWrap").hide();
+        $("#fileManagerFeeAmount").val("");
+      }
     }
 
     function applyFileManagerFilters() {
@@ -2639,13 +2677,19 @@ outlining your job title, responsibilities and duration of employment.</option>
 
     $("#fileManagerPurposeFilter").on("change", function() {
       refreshFileManagerOptions();
+      refreshFileManagerFeeAmountControl();
       applyFileManagerFilters();
     });
     $("#fileManagerTypeFilter").on("change", function() {
       refreshFileManagerOptions();
+      refreshFileManagerFeeAmountControl();
       applyFileManagerFilters();
     });
-    $("#fileManagerSpecificFilter").on("change", applyFileManagerFilters);
+    $("#fileManagerSpecificFilter").on("change", function() {
+      refreshFileManagerFeeAmountControl();
+      applyFileManagerFilters();
+    });
+    refreshFileManagerFeeAmountControl();
     if ($("#file-manager").hasClass("active")) {
       setTimeout(function() {
         fileManagerTable.columns.adjust().responsive.recalc();
@@ -2676,6 +2720,9 @@ outlining your job title, responsibilities and duration of employment.</option>
 
     var fileManagerBaseUrl = "<?php echo base_url(); ?>";
     var fileManagerClientId = "<?php echo (int) $client_id; ?>";
+    if (window.location.hash === "#feeModal") {
+      $("#feeModal").modal("show");
+    }
     try {
       var storedFileManagerSelection = sessionStorage.getItem("fileManagerShortcutSelection_" + fileManagerClientId);
       if (storedFileManagerSelection) {
@@ -2817,6 +2864,7 @@ outlining your job title, responsibilities and duration of employment.</option>
       var documentSpecific = $("#fileManagerSpecificFilter").val();
       var documentType = $("#fileManagerTypeFilter").val();
       var purpose = $("#fileManagerPurposeFilter").val();
+      var feeAmount = $("#fileManagerFeeAmount").val();
 
       if (!purpose) {
         alert("Please select a purpose before uploading.");
@@ -2834,6 +2882,10 @@ outlining your job title, responsibilities and duration of employment.</option>
         alert("Please choose a file to upload.");
         return;
       }
+      if (purpose === "Counselling" && documentType === "Fees" && feeAmount === "") {
+        alert("Please enter the fee amount before uploading a fee document.");
+        return;
+      }
       if (selectedFile.size > fileManagerMaxUploadBytes) {
         alert("The selected file is " + formatFileManagerBytes(selectedFile.size) + ". File Manager uploads are limited to 200 MB.");
         $(uploadInput).val("");
@@ -2847,10 +2899,14 @@ outlining your job title, responsibilities and duration of employment.</option>
       formData.append("document_purpose", purpose);
       formData.append("document_type", documentType);
       formData.append("document_specific", documentSpecific);
+      if (purpose === "Counselling" && documentType === "Fees") {
+        formData.append("fee_amount", feeAmount);
+      }
       formData.append("document_file", selectedFile);
 
       button.prop("disabled", true).html('<i class="fas fa-cloud-upload-alt"></i> Uploading...');
       $("#fileManagerUploadFile").prop("disabled", true);
+      $("#fileManagerFeeAmount").prop("disabled", true);
       updateFileManagerUploadProgress(0, "Uploading file...");
 
       $.ajax({
@@ -2878,6 +2934,7 @@ outlining your job title, responsibilities and duration of employment.</option>
             alert(response && response.message ? response.message : "Unable to upload the file to Google Drive.");
             button.prop("disabled", false).html('<i class="fas fa-cloud-upload-alt"></i> Upload File');
             $("#fileManagerUploadFile").prop("disabled", false);
+            $("#fileManagerFeeAmount").prop("disabled", false);
             resetFileManagerUploadProgress();
             return;
           }
@@ -2892,6 +2949,7 @@ outlining your job title, responsibilities and duration of employment.</option>
           alert(message);
           button.prop("disabled", false).html('<i class="fas fa-cloud-upload-alt"></i> Upload File');
           $("#fileManagerUploadFile").prop("disabled", false);
+          $("#fileManagerFeeAmount").prop("disabled", false);
           resetFileManagerUploadProgress();
         }
       });

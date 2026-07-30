@@ -195,6 +195,20 @@
     white-space: nowrap;
   }
 
+  .monitoring-value-link {
+    color: #007bff;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .monitoring-value-link:hover {
+    text-decoration: underline;
+  }
+
+  .detail-action {
+    white-space: nowrap;
+  }
+
   .file-list {
     display: grid;
     gap: 8px;
@@ -319,6 +333,51 @@
 
   function textNode(value) {
     return document.createTextNode(valueOrEmpty(value));
+  }
+
+  function linkValue(value, url, title) {
+    return {
+      text: valueOrEmpty(value),
+      url: url || '',
+      title: title || 'Edit value',
+      className: 'monitoring-value-link'
+    };
+  }
+
+  function actionLink(url, label) {
+    return {
+      text: label || 'Edit',
+      url: url || '',
+      title: label || 'Edit',
+      className: 'btn btn-outline-primary btn-xs detail-action'
+    };
+  }
+
+  function appendCellValue(cell, value) {
+    if (value && value.nodeType) {
+      cell.appendChild(value);
+      return;
+    }
+
+    if (value && typeof value === 'object') {
+      if (value.url) {
+        var link = document.createElement('a');
+        link.href = value.url;
+        link.className = value.className || '';
+        link.title = value.title || '';
+        if (value.target) {
+          link.target = value.target;
+        }
+        link.appendChild(textNode(value.text));
+        cell.appendChild(link);
+        return;
+      }
+
+      cell.appendChild(textNode(value.text));
+      return;
+    }
+
+    cell.appendChild(textNode(value));
   }
 
   function formatDate(value) {
@@ -451,7 +510,7 @@
       var tr = document.createElement('tr');
       mapper(row).forEach(function(value) {
         var td = document.createElement('td');
-        td.appendChild(textNode(value));
+        appendCellValue(td, value);
         tr.appendChild(td);
       });
       tbody.appendChild(tr);
@@ -549,16 +608,12 @@
     grid.appendChild(metric('Drive Files', client.files.length));
     detail.appendChild(grid);
 
-    detail.appendChild(tableSection('Program Options', ['Date Created', 'Acceptance', 'Process', 'Follow-up', 'Location', 'Intake', 'English', 'Remarks'], client.program_options, function(row) {
-      return [formatDate(row.date_created), row.acceptance_status, row.process_status, formatDate(row.followup), row.location, row.intake, row.english, row.remarks];
+    detail.appendChild(tableSection('Admission', ['Date', 'Status', 'VEVO Expiry', 'Intake', 'School', 'Program', 'Action'], client.admissions, function(row) {
+      return [formatDate(row.date), row.status, formatDate(row.vevo_expiry), row.intake, row.provider, row.course, actionLink(row.edit_url, 'Edit')];
     }));
 
-    detail.appendChild(tableSection('Admission', ['Date', 'Status', 'VEVO Expiry', 'Intake', 'School', 'Program'], client.admissions, function(row) {
-      return [formatDate(row.date), row.status, formatDate(row.vevo_expiry), row.intake, row.provider, row.course];
-    }));
-
-    detail.appendChild(tableSection('Visa Applications', ['Status', 'Submitted', 'Result Release', 'Intake', 'Expiry'], client.visa_applications, function(row) {
-      return [row.status, formatDate(row.submission_date), formatDate(row.result_release), formatDate(row.intake), formatDate(row.expiry)];
+    detail.appendChild(tableSection('Visa Applications', ['Status', 'Submitted', 'Result Release', 'Intake', 'Expiry', 'Action'], client.visa_applications, function(row) {
+      return [row.status, formatDate(row.submission_date), formatDate(row.result_release), formatDate(row.intake), formatDate(row.expiry), actionLink(row.edit_url, 'Edit')];
     }));
 
     detail.appendChild(tableSection('Payments', ['Type', 'Reference', 'Description', 'Amount', 'Date', 'Processed By'], client.payments, function(row) {
@@ -566,19 +621,25 @@
     }));
 
     var feeRows = [
-      { label: 'Tuition Fee', amount: client.fees.tuition },
-      { label: 'Visa Application', amount: client.fees.visa_application },
-      { label: 'OSHC', amount: client.fees.oshc },
-      { label: 'Admin Fee', amount: client.fees.admin },
-      { label: 'Refusal Fee', amount: client.fees.refusal },
-      { label: 'Processing Fee', amount: client.fees.processing }
+      { label: 'Tuition Fee', amount: client.fees.tuition, url: client.fee_edit_urls.tuition || client.fee_add_url },
+      { label: 'Visa Application', amount: client.fees.visa_application, url: client.fee_edit_urls.visa_application || client.fee_add_url },
+      { label: 'OSHC', amount: client.fees.oshc, url: client.fee_edit_urls.oshc || client.fee_add_url },
+      { label: 'Admin Fee', amount: client.fees.admin, url: client.fee_edit_urls.admin || client.fee_add_url },
+      { label: 'Refusal Fee', amount: client.fees.refusal, url: client.fee_edit_urls.refusal || client.fee_add_url },
+      { label: 'Processing Fee', amount: client.fees.processing, url: client.fee_edit_urls.processing || client.fee_add_url }
     ];
     detail.appendChild(tableSection('Notice of Payment Summary', ['Fee', 'Amount'], feeRows, function(row) {
-      return [row.label, row.amount];
+      return [row.label, linkValue(row.amount, row.url, 'Edit ' + row.label)];
     }));
 
-    detail.appendChild(tableSection('Fee Receipts', ['Description', 'Amount', 'Date', 'Receipt'], client.fee_receipts, function(row) {
-      return [row.description, row.amount, formatDate(row.date), row.receipt];
+    detail.appendChild(tableSection('Fee Receipts', ['Description', 'Amount', 'Date', 'Receipt', 'Action'], client.fee_receipts, function(row) {
+      return [
+        linkValue(row.description, row.edit_url, 'Edit fee receipt'),
+        linkValue(row.amount, row.edit_url, 'Edit fee amount'),
+        formatDate(row.date),
+        row.receipt_url ? { text: row.receipt, url: row.receipt_url, target: '_blank', title: 'Open receipt', className: 'monitoring-value-link' } : row.receipt,
+        actionLink(row.edit_url, 'Edit')
+      ];
     }));
 
     detail.appendChild(renderFiles(client.files));

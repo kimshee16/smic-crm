@@ -137,6 +137,15 @@ class Customerinfocontroller extends CI_Controller {
 		return $slug . '_' . date('mdY') . ($extension != '' ? '.' . $extension : '');
 	}
 
+	private function fee_description_key($description)
+	{
+		$key = strtolower(trim((string) $description));
+		if ($key == 'oshc') {
+			$key = 'osch';
+		}
+		return $key;
+	}
+
 	private function default_file_master_document_map()
 	{
 		return array(
@@ -602,6 +611,12 @@ class Customerinfocontroller extends CI_Controller {
         $sql13 = "SELECT * FROM fee_receipts WHERE client_id = $client_id";
         $query13 = $this->db->query($sql13);
         $fees = $query13->result();
+        $file_manager_fee_receipts = array();
+        foreach ($fees as $fee_row) {
+            if (isset($fee_row->fee_receipt) && $fee_row->fee_receipt != '') {
+                $file_manager_fee_receipts[$fee_row->fee_receipt] = $fee_row;
+            }
+        }
         
         $sql14 = "SELECT * FROM firebasefiles WHERE client_id = $client_id";
         $query14 = $this->db->query($sql14);
@@ -683,6 +698,7 @@ class Customerinfocontroller extends CI_Controller {
         $data['firebasefiles'] = $client_files;
         $data['student_drive_folder'] = $student_drive_folder;
         $data['student_drive_files'] = $student_drive_files;
+        $data['file_manager_fee_receipts'] = $file_manager_fee_receipts;
         $data['file_master_document_map'] = $file_master_document_map;
         $data['file_master_document_specifics'] = $file_master_document_specifics;
         $data['po_links'] = $po_links;
@@ -1015,6 +1031,7 @@ class Customerinfocontroller extends CI_Controller {
 		$document_specific = trim((string) $this->input->post('document_specific'));
 		$document_alias = trim((string) $this->input->post('document_alias'));
 		$remarks = trim((string) $this->input->post('remarks'));
+		$fee_amount = trim((string) $this->input->post('fee_amount'));
 
 		if ($client_id <= 0 || $document_purpose == '' || $document_type == '' || $document_specific == '') {
 			return $this->json_response(array('success' => false, 'message' => 'Client, purpose, document type, and document specific are required.'), 422);
@@ -1092,11 +1109,27 @@ class Customerinfocontroller extends CI_Controller {
 				$po_link = $this->ensure_po_link_for_drive_file($client_id, $data['id']);
 			}
 
+			$fee_receipt = null;
+			if ($document_purpose == 'Counselling' && $document_type == 'Fees') {
+				$fee_receipt_data = array(
+					'client_id' => $client_id,
+					'fee_description' => $document_specific,
+					'fee_date' => date('Y-m-d'),
+					'fee_remarks' => $remarks,
+					'fee_amount' => $fee_amount !== '' ? $fee_amount : 0,
+					'fee_receipt' => isset($data['drive_web_view_link']) && $data['drive_web_view_link'] != '' ? $data['drive_web_view_link'] : $data['drive_file_name']
+				);
+				$this->db->insert('fee_receipts', $fee_receipt_data);
+				$fee_receipt_data['id'] = $this->db->insert_id();
+				$fee_receipt = $fee_receipt_data;
+			}
+
 			return $this->json_response(array(
 				'success' => true,
 				'message' => 'File uploaded to Google Drive.',
 				'file' => $data,
-				'po_link' => $po_link
+				'po_link' => $po_link,
+				'fee_receipt' => $fee_receipt
 			));
 		} catch (Exception $e) {
 			return $this->json_response(array('success' => false, 'message' => $e->getMessage()), 500);
@@ -1655,6 +1688,7 @@ class Customerinfocontroller extends CI_Controller {
 					'phone' => isset($row->monitoring_client_mobile) && $row->monitoring_client_mobile != "" ? $row->monitoring_client_mobile : (isset($row->monitoring_client_phone) ? $row->monitoring_client_phone : ''),
 					'officer' => isset($row->monitoring_officer_name) ? $row->monitoring_officer_name : '',
 					'edit_url' => base_url().'index.php/editclientinfo2/'.$client_id,
+					'fee_add_url' => base_url().'index.php/editclientinfo2/'.$client_id.'/counselling#feeModal',
 					'critical_score' => 0,
 					'critical_reasons' => array(),
 					'reason_index' => array(),
@@ -1678,6 +1712,14 @@ class Customerinfocontroller extends CI_Controller {
 						'admin' => isset($row->adminfeeamount) ? $row->adminfeeamount : '',
 						'refusal' => isset($row->refusalfeeamount) ? $row->refusalfeeamount : '',
 						'processing' => isset($row->processingfeeamount) ? $row->processingfeeamount : ''
+					),
+					'fee_edit_urls' => array(
+						'tuition' => '',
+						'visa_application' => '',
+						'oshc' => '',
+						'admin' => '',
+						'refusal' => '',
+						'processing' => ''
 					),
 					'fee_receipts' => array(),
 					'payments' => array(),
@@ -1721,7 +1763,8 @@ class Customerinfocontroller extends CI_Controller {
 					'vevo_expiry' => isset($row->sa_vevo_expiry_date) ? $row->sa_vevo_expiry_date : '',
 					'intake' => isset($row->saintake) ? $row->saintake : '',
 					'provider' => isset($row->monitoring_provider_name) ? $row->monitoring_provider_name : '',
-					'course' => isset($row->monitoring_program) ? $row->monitoring_program : ''
+					'course' => isset($row->monitoring_program) ? $row->monitoring_program : '',
+					'edit_url' => isset($row->studentapp_id) && $row->studentapp_id != "" ? base_url().'index.php/editapplication/'.$row->studentapp_id : base_url().'index.php/editclientinfo2/'.$client_id.'/admission'
 				);
 			}
 
@@ -1736,7 +1779,8 @@ class Customerinfocontroller extends CI_Controller {
 					'submission_date' => isset($row->visadateofsubmission) ? $row->visadateofsubmission : '',
 					'result_release' => isset($row->visaresultreleasedate) ? $row->visaresultreleasedate : '',
 					'intake' => isset($row->visa_intake) ? $row->visa_intake : '',
-					'expiry' => $visa_expiry
+					'expiry' => $visa_expiry,
+					'edit_url' => isset($row->client_visa_id) && $row->client_visa_id != "" ? base_url().'index.php/editvisaapplication/'.$row->client_visa_id : base_url().'index.php/editclientinfo2/'.$client_id.'/admission'
 				);
 			}
 
@@ -1826,12 +1870,35 @@ class Customerinfocontroller extends CI_Controller {
 				foreach ($fee_receipts as $fee) {
 					$fee_client_id = (int) $fee->client_id;
 					if (isset($clients_by_id[$fee_client_id])) {
+						$fee_edit_url = base_url().'index.php/editfile?type=fee&id='.(int) $fee->id.'&client='.$fee_client_id;
+						$receipt_value = isset($fee->fee_receipt) ? $fee->fee_receipt : '';
+						$receipt_url = '';
+						if ($receipt_value != '') {
+							$receipt_url = stripos($receipt_value, 'http://') === 0 || stripos($receipt_value, 'https://') === 0 ? $receipt_value : base_url().'assets/fees/'.$receipt_value;
+						}
 						$clients_by_id[$fee_client_id]['fee_receipts'][] = array(
+							'id' => isset($fee->id) ? $fee->id : '',
 							'description' => isset($fee->fee_description) ? $fee->fee_description : '',
 							'amount' => isset($fee->fee_amount) ? $fee->fee_amount : '',
 							'date' => isset($fee->fee_date) ? $fee->fee_date : '',
-							'receipt' => isset($fee->fee_receipt) ? $fee->fee_receipt : ''
+							'receipt' => $receipt_value,
+							'receipt_url' => $receipt_url,
+							'edit_url' => $fee_edit_url
 						);
+						$fee_key_map = array(
+							'admin fee' => 'admin',
+							'refusal fee' => 'refusal',
+							'processing fee' => 'processing',
+							'tuition fee' => 'tuition',
+							'visa application fee' => 'visa_application',
+							'visa application' => 'visa_application',
+							'osch' => 'oshc',
+							'oshc' => 'oshc'
+						);
+						$description_key = $this->fee_description_key(isset($fee->fee_description) ? $fee->fee_description : '');
+						if (isset($fee_key_map[$description_key]) && $clients_by_id[$fee_client_id]['fee_edit_urls'][$fee_key_map[$description_key]] == '') {
+							$clients_by_id[$fee_client_id]['fee_edit_urls'][$fee_key_map[$description_key]] = $fee_edit_url;
+						}
 					}
 				}
 			}
