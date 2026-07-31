@@ -95,6 +95,44 @@ class Google_drive_service
         return $raw;
     }
 
+    public function delete_file($file_id)
+    {
+        if ($file_id == '') {
+            throw new Exception('Google Drive file ID is required.');
+        }
+
+        $url = 'https://www.googleapis.com/drive/v3/files/' . rawurlencode($file_id) . '?supportsAllDrives=true';
+        $headers = array('Authorization: Bearer ' . $this->access_token());
+
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'DELETE');
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 60);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 0);
+
+        $raw = curl_exec($ch);
+        $error = curl_error($ch);
+        $status = curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+        curl_close($ch);
+
+        if ($raw === false) {
+            throw new Exception('Google Drive delete failed: ' . $error);
+        }
+
+        if ($status == 404) {
+            return array('not_found' => true);
+        }
+
+        $decoded = json_decode($raw, true);
+        if ($status < 200 || $status >= 300) {
+            $message = isset($decoded['error']['message']) ? $decoded['error']['message'] : $raw;
+            throw new Exception('Google Drive API error: ' . $message);
+        }
+
+        return array('not_found' => false);
+    }
+
     private function access_token()
     {
         if ($this->access_token && time() < $this->token_expires_at - 60) {

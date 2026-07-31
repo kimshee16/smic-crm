@@ -896,6 +896,7 @@
                             $feeAmount = "<a href='".htmlspecialchars($feeEditUrl, ENT_QUOTES)."' class='monitoring-value-link'>".htmlspecialchars($feeReceipt->fee_amount)."</a>";
                             $feeEditButton = "<a href='".htmlspecialchars($feeEditUrl, ENT_QUOTES)."' class='btn btn-outline-primary btn-xs' title='Edit fee amount'><i class='fa fa-edit'></i></a>";
                         }
+                        $deleteButton = "<button type='button' class='btn btn-outline-danger btn-xs file-manager-delete-file' title='Delete file' data-file-id='".(int) $row->id."' data-file-name='".htmlspecialchars($fileName, ENT_QUOTES)."'><i class='fa fa-trash'></i></button>";
                         echo "<tr>
                             <td><div class='file-manager-file'><span class='file-manager-file-icon ".$iconClass."'>".$iconLabel."</span><span>".htmlspecialchars($fileName)."</span></div></td>
                             <td>".htmlspecialchars($document["purpose"])."</td>
@@ -908,6 +909,7 @@
                             <td>
                               <a href='".htmlspecialchars($fileLink, ENT_QUOTES)."' target='_blank' class='btn btn-outline-primary btn-xs' title='Open in Google Drive'><i class='fab fa-google-drive'></i></a>
                               ".$feeEditButton."
+                              ".$deleteButton."
                             </td>
                           </tr>";
                     }
@@ -2720,6 +2722,50 @@ outlining your job title, responsibilities and duration of employment.</option>
 
     var fileManagerBaseUrl = "<?php echo base_url(); ?>";
     var fileManagerClientId = "<?php echo (int) $client_id; ?>";
+
+    $("#filemanagertable").on("click", ".file-manager-delete-file", function() {
+      var button = $(this);
+      var fileId = button.data("file-id");
+      var fileName = button.data("file-name") || "this file";
+      var originalHtml = button.html();
+
+      if (!confirm("Delete " + fileName + " from File Manager and Google Shared Drive?")) {
+        return;
+      }
+
+      button.prop("disabled", true).html('<i class="fa fa-spinner fa-spin"></i>');
+      $.ajax({
+        type: "POST",
+        url: fileManagerBaseUrl + "index.php/delete_student_gdrive_file",
+        dataType: "json",
+        data: {
+          client_id: fileManagerClientId,
+          file_id: fileId
+        },
+        success: function(response) {
+          if (!response || !response.success) {
+            alert(response && response.message ? response.message : "Unable to delete the file.");
+            button.prop("disabled", false).html(originalHtml);
+            return;
+          }
+
+          var tableRow = button.closest("tr");
+          if (tableRow.hasClass("child")) {
+            tableRow = tableRow.prev();
+          }
+          fileManagerTable.row(tableRow).remove().draw();
+        },
+        error: function(xhr) {
+          var message = "Unable to delete the file.";
+          if (xhr.responseJSON && xhr.responseJSON.message) {
+            message = xhr.responseJSON.message;
+          }
+          alert(message);
+          button.prop("disabled", false).html(originalHtml);
+        }
+      });
+    });
+
     if (window.location.hash === "#feeModal") {
       $("#feeModal").modal("show");
     }

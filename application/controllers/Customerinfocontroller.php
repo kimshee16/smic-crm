@@ -1136,6 +1136,61 @@ class Customerinfocontroller extends CI_Controller {
 		}
 	}
 
+	public function delete_student_gdrive_file()
+	{
+		if (!isset($this->session->officer_name)) {
+			return $this->json_response(array('success' => false, 'message' => 'Session expired. Please sign in again.'), 401);
+		}
+
+		if (!$this->student_google_drive_table_exists()) {
+			return $this->json_response(array('success' => false, 'message' => 'The student_google_drive table does not exist yet.'), 500);
+		}
+
+		$client_id = (int) $this->input->post('client_id');
+		$file_id = (int) $this->input->post('file_id');
+		if ($client_id <= 0 || $file_id <= 0) {
+			return $this->json_response(array('success' => false, 'message' => 'Client and file are required.'), 422);
+		}
+
+		$this->db->where('id', $file_id);
+		$this->db->where('client_id', $client_id);
+		$this->db->where('record_type', 'file');
+		$this->db->where('is_active', 1);
+		$file = $this->db->get('student_google_drive', 1)->row();
+		if (!$file) {
+			return $this->json_response(array('success' => false, 'message' => 'File Manager record was not found.'), 404);
+		}
+
+		if (!isset($file->drive_file_id) || trim((string) $file->drive_file_id) == '') {
+			return $this->json_response(array('success' => false, 'message' => 'This file has no Google Drive file ID.'), 422);
+		}
+
+		try {
+			$this->load->library('google_drive_service');
+			$drive_delete = $this->google_drive_service->delete_file($file->drive_file_id);
+
+			$this->db->where('id', $file_id);
+			$this->db->where('client_id', $client_id);
+			$this->db->where('record_type', 'file');
+			$this->db->delete('student_google_drive');
+
+			if ($this->is_program_options_drive_file($file)) {
+				$this->ensure_po_links_table();
+				$this->db->where('client_id', $client_id);
+				$this->db->where('link', $this->po_acceptance_link($file_id));
+				$this->db->delete('po_links');
+			}
+
+			$message = !empty($drive_delete['not_found'])
+				? 'File was not found on Google Shared Drive. File Manager record was deleted.'
+				: 'File deleted from Google Shared Drive and File Manager.';
+
+			return $this->json_response(array('success' => true, 'message' => $message));
+		} catch (Exception $e) {
+			return $this->json_response(array('success' => false, 'message' => 'Unable to delete file: ' . $e->getMessage()), 500);
+		}
+	}
+
 	public function send_po_link_email()
 	{
 		if (!isset($this->session->officer_name)) {

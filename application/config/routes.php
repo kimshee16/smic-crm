@@ -25,6 +25,7 @@ $route['editclientinfo2/(:any)'] = 'customerinfocontroller/editclientinfo2/$1';
 $route['savefirebasefile'] = 'customerinfocontroller/savefirebasefile';
 $route['create_student_gdrive_folder'] = 'customerinfocontroller/create_student_gdrive_folder';
 $route['upload_student_gdrive_file'] = 'customerinfocontroller/upload_student_gdrive_file';
+$route['delete_student_gdrive_file'] = 'customerinfocontroller/delete_student_gdrive_file';
 $route['send_po_link_email'] = 'customerinfocontroller/send_po_link_email';
 $route['assignofficer'] = 'customerinfocontroller/assignofficer';
 $route['enterclientinfo/(:any)'] = 'customerinfocontroller/enterclientinfo/$1';
