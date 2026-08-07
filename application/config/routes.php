@@ -55,6 +55,7 @@ $route['newpayment'] = 'paymentscontroller/newpayment';
 $route['editpayment/(:any)'] = 'paymentscontroller/editpayment/$1';
 $route['savepayment'] = 'Receiptscontroller/do_upload';
 $route['archivepayment/(:any)'] = 'paymentscontroller/archivepayment/$1';
+$route['deletepaymentfrommonitoring/(:any)'] = 'paymentscontroller/deletepaymentfrommonitoring/$1';
 $route['editpayment/(:any)'] = 'paymentscontroller/editpayment/$1';
 $route['viewpayment_commission/(:any)'] = 'paymentscontroller/viewpayment_commission/$1';
 $route['viewpayment_invoice/(:any)'] = 'paymentscontroller/viewpayment_invoice/$1';

@@ -1574,23 +1574,28 @@ class Customerinfocontroller extends CI_Controller {
 	    $type = $_GET["type"];
         $id = $_GET["id"];
         $client = $_GET["client"];
+		$return_to_monitoring = $this->input->get('return') == 'clientmonitoring';
         
         if($type == "admissionofferletter") {
             $this->db->where('id', $id);
     		$this->db->delete('admissionofferletter');
+			if ($return_to_monitoring) { redirect('clientmonitoring'); }
     		redirect(base_url()."index.php/editclientinfo2/".$client);
         } elseif($type == "fee") {
             $this->db->where('id', $id);
     		$this->db->delete('fee_receipts');
+			if ($return_to_monitoring) { redirect('clientmonitoring'); }
     		redirect(base_url()."index.php/editclientinfo2/".$client);
         } elseif($type == "programoption") {
             $this->ensure_po_simplified_table();
             $this->db->where('id', $id);
     		$this->db->delete('po_simplified');
+			if ($return_to_monitoring) { redirect('clientmonitoring'); }
     		redirect(base_url()."index.php/editclientinfo2/".$client."/counselling");
         } elseif($type == "interviews") {
             $this->db->where('id', $id);
     		$this->db->delete('interviews');
+			if ($return_to_monitoring) { redirect('clientmonitoring'); }
     		redirect(base_url()."index.php/editclientinfo2/".$client);
         }
 		
@@ -1819,7 +1824,8 @@ class Customerinfocontroller extends CI_Controller {
 					'intake' => isset($row->saintake) ? $row->saintake : '',
 					'provider' => isset($row->monitoring_provider_name) ? $row->monitoring_provider_name : '',
 					'course' => isset($row->monitoring_program) ? $row->monitoring_program : '',
-					'edit_url' => isset($row->studentapp_id) && $row->studentapp_id != "" ? base_url().'index.php/editapplication/'.$row->studentapp_id : base_url().'index.php/editclientinfo2/'.$client_id.'/admission'
+					'edit_url' => isset($row->studentapp_id) && $row->studentapp_id != "" ? base_url().'index.php/editapplication/'.$row->studentapp_id : base_url().'index.php/editclientinfo2/'.$client_id.'/admission',
+					'delete_url' => isset($row->studentapp_id) && $row->studentapp_id != "" ? base_url().'index.php/deleteapplicationfromcinfo/'.$row->studentapp_id.'/'.$client_id.'?return=clientmonitoring' : ''
 				);
 			}
 
@@ -1835,7 +1841,8 @@ class Customerinfocontroller extends CI_Controller {
 					'result_release' => isset($row->visaresultreleasedate) ? $row->visaresultreleasedate : '',
 					'intake' => isset($row->visa_intake) ? $row->visa_intake : '',
 					'expiry' => $visa_expiry,
-					'edit_url' => isset($row->client_visa_id) && $row->client_visa_id != "" ? base_url().'index.php/editvisaapplication/'.$row->client_visa_id : base_url().'index.php/editclientinfo2/'.$client_id.'/admission'
+					'edit_url' => isset($row->client_visa_id) && $row->client_visa_id != "" ? base_url().'index.php/editvisaapplication/'.$row->client_visa_id : base_url().'index.php/editclientinfo2/'.$client_id.'/admission',
+					'delete_url' => isset($row->client_visa_id) && $row->client_visa_id != "" ? base_url().'index.php/deletevisaapplication/'.$row->client_visa_id.'/'.$client_id.'?return=clientmonitoring' : ''
 				);
 			}
 
@@ -1926,6 +1933,7 @@ class Customerinfocontroller extends CI_Controller {
 					$fee_client_id = (int) $fee->client_id;
 					if (isset($clients_by_id[$fee_client_id])) {
 						$fee_edit_url = base_url().'index.php/editfile?type=fee&id='.(int) $fee->id.'&client='.$fee_client_id;
+						$fee_delete_url = base_url().'index.php/deletefile?type=fee&id='.(int) $fee->id.'&client='.$fee_client_id.'&return=clientmonitoring';
 						$receipt_value = isset($fee->fee_receipt) ? $fee->fee_receipt : '';
 						$receipt_url = '';
 						if ($receipt_value != '') {
@@ -1938,7 +1946,8 @@ class Customerinfocontroller extends CI_Controller {
 							'date' => isset($fee->fee_date) ? $fee->fee_date : '',
 							'receipt' => $receipt_value,
 							'receipt_url' => $receipt_url,
-							'edit_url' => $fee_edit_url
+							'edit_url' => $fee_edit_url,
+							'delete_url' => $fee_delete_url
 						);
 						$fee_key_map = array(
 							'admin fee' => 'admin',
@@ -1976,7 +1985,8 @@ class Customerinfocontroller extends CI_Controller {
 							'description' => isset($payment->paymentdescription) ? $payment->paymentdescription : '',
 							'amount' => (isset($payment->currency) ? $payment->currency.' ' : '').(isset($payment->amount) ? $payment->amount : ''),
 							'date' => isset($payment->paymentdate) ? $payment->paymentdate : '',
-							'processed_by' => isset($payment->officer_name) ? $payment->officer_name : ''
+							'processed_by' => isset($payment->officer_name) ? $payment->officer_name : '',
+							'delete_url' => isset($payment->paymentid) ? base_url().'index.php/deletepaymentfrommonitoring/'.(int) $payment->paymentid : ''
 						);
 					}
 				}

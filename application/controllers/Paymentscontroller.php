@@ -510,6 +510,16 @@ class Paymentscontroller extends CI_Controller {
 		redirect('payments');
         
 	}
+
+	public function deletepaymentfrommonitoring($payment_id) {
+
+	    $this->db->set('barchived', 1);
+	    $this->db->where('paymentid', $payment_id);
+		$this->db->update('payments');
+
+		redirect('clientmonitoring');
+
+	}
 	
 	public function editpayment($id)
 	{

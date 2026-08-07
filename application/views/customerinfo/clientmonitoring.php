@@ -209,6 +209,12 @@
     white-space: nowrap;
   }
 
+  .detail-action-group {
+    display: inline-flex;
+    gap: 4px;
+    white-space: nowrap;
+  }
+
   .file-list {
     display: grid;
     gap: 8px;
@@ -326,6 +332,7 @@
 <script>
   var monitoringClients = <?php echo $monitoring_json; ?>;
   var selectedClientId = monitoringClients.length ? monitoringClients[0].client_id : null;
+  var canDeleteMonitoring = <?php echo in_array($this->session->officer_role, array('regional manager', 'admin', 'manager')) ? 'true' : 'false'; ?>;
 
   function valueOrEmpty(value) {
     return value === null || value === undefined || value === '' ? '[empty]' : value;
@@ -351,6 +358,38 @@
       title: label || 'Edit',
       className: 'btn btn-outline-primary btn-xs detail-action'
     };
+  }
+
+  function actionButton(url, label, className, iconClass, confirmation) {
+    var link = document.createElement('a');
+    link.href = url || '#';
+    link.className = className + ' detail-action';
+    link.title = label;
+    link.setAttribute('aria-label', label);
+    if (confirmation) {
+      link.className += ' confirmation';
+    }
+
+    var icon = document.createElement('i');
+    icon.className = iconClass;
+    icon.setAttribute('aria-hidden', 'true');
+    link.appendChild(icon);
+    return link;
+  }
+
+  function actionButtons(editUrl, deleteUrl) {
+    var group = document.createElement('span');
+    group.className = 'detail-action-group';
+    if (editUrl) {
+      group.appendChild(actionButton(editUrl, 'Edit', 'btn btn-outline-primary btn-xs', 'fa fa-edit', false));
+    }
+    if (canDeleteMonitoring && deleteUrl) {
+      group.appendChild(actionButton(deleteUrl, 'Delete', 'btn btn-outline-danger btn-xs', 'fa fa-trash', true));
+    }
+    if (!group.childNodes.length) {
+      group.appendChild(textNode(''));
+    }
+    return group;
   }
 
   function appendCellValue(cell, value) {
@@ -609,15 +648,15 @@
     detail.appendChild(grid);
 
     detail.appendChild(tableSection('Admission', ['Date', 'Status', 'VEVO Expiry', 'Intake', 'School', 'Program', 'Action'], client.admissions, function(row) {
-      return [formatDate(row.date), row.status, formatDate(row.vevo_expiry), row.intake, row.provider, row.course, actionLink(row.edit_url, 'Edit')];
+      return [formatDate(row.date), row.status, formatDate(row.vevo_expiry), row.intake, row.provider, row.course, actionButtons(row.edit_url, row.delete_url)];
     }));
 
     detail.appendChild(tableSection('Visa Applications', ['Status', 'Submitted', 'Result Release', 'Intake', 'Expiry', 'Action'], client.visa_applications, function(row) {
-      return [row.status, formatDate(row.submission_date), formatDate(row.result_release), formatDate(row.intake), formatDate(row.expiry), actionLink(row.edit_url, 'Edit')];
+      return [row.status, formatDate(row.submission_date), formatDate(row.result_release), formatDate(row.intake), formatDate(row.expiry), actionButtons(row.edit_url, row.delete_url)];
     }));
 
-    detail.appendChild(tableSection('Payments', ['Type', 'Reference', 'Description', 'Amount', 'Date', 'Processed By'], client.payments, function(row) {
-      return [row.type, row.reference, row.description, row.amount, formatDate(row.date), row.processed_by];
+    detail.appendChild(tableSection('Payments', ['Type', 'Reference', 'Description', 'Amount', 'Date', 'Processed By', 'Action'], client.payments, function(row) {
+      return [row.type, row.reference, row.description, row.amount, formatDate(row.date), row.processed_by, actionButtons('', row.delete_url)];
     }));
 
     var feeRows = [
@@ -638,7 +677,7 @@
         linkValue(row.amount, row.edit_url, 'Edit fee amount'),
         formatDate(row.date),
         row.receipt_url ? { text: row.receipt, url: row.receipt_url, target: '_blank', title: 'Open receipt', className: 'monitoring-value-link' } : row.receipt,
-        actionLink(row.edit_url, 'Edit')
+        actionButtons(row.edit_url, row.delete_url)
       ];
     }));
 
@@ -660,6 +699,12 @@
   }
 
   document.getElementById('clientSearch').addEventListener('input', renderClientList);
+  document.addEventListener('click', function(event) {
+    var trigger = event.target.closest ? event.target.closest('.confirmation') : null;
+    if (trigger && !confirm('Are you sure to delete the entry?')) {
+      event.preventDefault();
+    }
+  });
   renderClientList();
   if (monitoringClients.length) {
     renderClientDetail(monitoringClients[0]);

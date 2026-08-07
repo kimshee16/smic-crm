@@ -667,6 +667,9 @@ class Visacontroller extends CI_Controller {
 		$this->db->where('client_visa_id', $vapid);
 		$this->db->delete('visa_application');
 		//echo json_encode("Successfully done reset!");
+		if ($this->input->get('return') == 'clientmonitoring') {
+			redirect('clientmonitoring');
+		}
 		redirect(base_url()."index.php/editclientinfo2/".$client_id);
 	}
 

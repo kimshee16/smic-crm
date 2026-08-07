@@ -466,6 +466,9 @@ class Applicationscontroller extends CI_Controller {
 		$this->db->where('studentapp_id', $app_id);
 		$this->db->delete('student_application');
 		
+		if ($this->input->get('return') == 'clientmonitoring') {
+			redirect('clientmonitoring');
+		}
 		redirect('editclientinfo2/'.$client_id);
 	}
 
