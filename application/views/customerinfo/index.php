@@ -63,7 +63,7 @@
                 
                 foreach ($clients as $row) {
                   if($this->session->officer_role == "regional manager" || $this->session->officer_role == "admin" || $this->session->officer_role == "manager") {
-                      $deletecustomer = "<a href='deactivateclient/".$row->client_id."' class='btn btn-danger btn-xs confirmation' title='Deactivate ".$row->client_surname.", ".$row->client_firstname." ".$row->client_middlename."'><i class='fa fa-trash' aria-hidden='true'></i></a>";
+                      $deletecustomer = "<a href='".base_url()."index.php/deactivateclient/".$row->ctclientid."' class='btn btn-danger btn-xs confirmation' title='Deactivate ".$row->client_surname.", ".$row->client_firstname." ".$row->client_middlename."'><i class='fa fa-trash' aria-hidden='true'></i></a>";
                   } else {
                       $deletecustomer = "";
                   }
